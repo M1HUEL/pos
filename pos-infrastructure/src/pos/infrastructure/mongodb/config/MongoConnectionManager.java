@@ -1,4 +1,4 @@
-package pos.database;
+package pos.infrastructure.mongodb.config;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;

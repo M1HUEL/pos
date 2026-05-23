@@ -1,4 +1,4 @@
-package pos.product.repository;
+package pos.infrastructure.mongodb.repository;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Optional;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import pos.product.mapper.ProductMapper;
+import pos.infrastructure.mongodb.mapper.ProductMapper;
 import pos.product.model.Product;
+import pos.product.repository.ProductRepository;
 
 public class ProductMongoRepository implements ProductRepository {
 

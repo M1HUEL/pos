@@ -1,4 +1,4 @@
-package pos.inventory.repository;
+package pos.infrastructure.mongodb.repository;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Optional;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import pos.inventory.mapper.InventoryMapper;
+import pos.infrastructure.mongodb.mapper.InventoryMapper;
 import pos.inventory.model.StockItem;
+import pos.inventory.repository.InventoryRepository;
 
 public class InventoryMongoRepository implements InventoryRepository {
 

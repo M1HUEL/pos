@@ -1,4 +1,4 @@
-package pos.product.mapper;
+package pos.infrastructure.mongodb.mapper;
 
 import org.bson.Document;
 import org.bson.types.Decimal128;

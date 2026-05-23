@@ -1,4 +1,4 @@
-package pos.inventory.mapper;
+package pos.infrastructure.mongodb.mapper;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;

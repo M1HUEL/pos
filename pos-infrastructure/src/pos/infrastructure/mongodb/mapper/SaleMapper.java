@@ -1,4 +1,4 @@
-package pos.sale.mapper;
+package pos.infrastructure.mongodb.mapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package pos.sale.repository;
+package pos.infrastructure.mongodb.repository;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Optional;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import pos.sale.mapper.SaleMapper;
+import pos.infrastructure.mongodb.mapper.SaleMapper;
 import pos.sale.model.Sale;
+import pos.sale.repository.SaleRepository;
 
 public class SaleMongoRepository implements SaleRepository {
 
