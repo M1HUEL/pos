@@ -8,6 +8,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.bson.Document;
+import pos.infrastructure.mongodb.MongoIndexInitializer;
 import pos.infrastructure.mongodb.repository.InventoryMongoRepository;
 import pos.infrastructure.mongodb.repository.ProductMongoRepository;
 import pos.infrastructure.mongodb.repository.SaleMongoRepository;
@@ -43,6 +44,8 @@ public class App {
     }
 
     MongoDatabase database = mongoClient.getDatabase(DB_NAME);
+
+    new MongoIndexInitializer(database).initialize();
 
     registerShutdownHook(mongoClient);
 
