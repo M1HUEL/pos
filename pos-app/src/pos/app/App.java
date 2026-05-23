@@ -12,6 +12,7 @@ import pos.infrastructure.mongodb.MongoIndexInitializer;
 import pos.infrastructure.mongodb.repository.InventoryMongoRepository;
 import pos.infrastructure.mongodb.repository.ProductMongoRepository;
 import pos.infrastructure.mongodb.repository.SaleMongoRepository;
+import pos.infrastructure.mongodb.repository.SupplierMongoRepository;
 import pos.inventory.listener.InventoryEventListener;
 import pos.inventory.repository.InventoryRepository;
 import pos.inventory.service.InventoryService;
@@ -24,10 +25,15 @@ import pos.sale.repository.SaleRepository;
 import pos.sale.service.SaleService;
 import pos.sale.service.SaleServiceImpl;
 import pos.sale.validation.SaleValidator;
+import pos.supplier.repository.SupplierRepository;
+import pos.supplier.service.SupplierService;
+import pos.supplier.service.SupplierServiceImpl;
+import pos.supplier.validation.SupplierValidator;
 import pos.ui.controller.InventoryController;
 import pos.ui.controller.NewSaleController;
 import pos.ui.controller.ProductController;
 import pos.ui.controller.SaleHistoryController;
+import pos.ui.controller.SupplierController;
 import pos.ui.frame.MainFrame;
 
 public class App {
@@ -52,32 +58,25 @@ public class App {
     ProductRepository productRepository = new ProductMongoRepository(database);
     InventoryRepository inventoryRepository = new InventoryMongoRepository(database);
     SaleRepository saleRepository = new SaleMongoRepository(database);
+    SupplierRepository supplierRepository = new SupplierMongoRepository(database);
 
     ProductValidator productValidator = new ProductValidator();
     InventoryValidator inventoryValidator = new InventoryValidator();
     SaleValidator saleValidator = new SaleValidator();
+    SupplierValidator supplierValidator = new SupplierValidator();
 
     ProductServiceImpl productService = new ProductServiceImpl(productRepository, productValidator);
-
     InventoryService inventoryService = new InventoryServiceImpl(inventoryRepository, inventoryValidator, productService);
-
     SaleService saleService = new SaleServiceImpl(saleRepository, saleValidator, inventoryService);
+    SupplierService supplierService = new SupplierServiceImpl(supplierRepository, supplierValidator);
 
-    productService.addListener(new InventoryEventListener(inventoryRepository));
-
-    NewSaleController newSaleController = new NewSaleController(saleService, productService);
     ProductController productController = new ProductController(productService);
     InventoryController inventoryController = new InventoryController(inventoryService, productService);
+    NewSaleController newSaleController = new NewSaleController(saleService, productService);
     SaleHistoryController saleHistoryController = new SaleHistoryController(saleService);
+    SupplierController supplierController = new SupplierController(supplierService);
 
-    SwingUtilities.invokeLater(()
-      -> new MainFrame(
-        productController,
-        inventoryController,
-        newSaleController,
-        saleHistoryController
-      ).setVisible(true)
-    );
+    SwingUtilities.invokeLater(() -> new MainFrame(productController, inventoryController, newSaleController, saleHistoryController, supplierController).setVisible(true));
   }
 
   private static MongoClient connectToDatabase(String mongoUri) {

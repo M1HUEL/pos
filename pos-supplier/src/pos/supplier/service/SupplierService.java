@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import pos.supplier.model.Supplier;
 
-interface SupplierService {
+public interface SupplierService {
 
   List<Supplier> getAllSuppliers();
 
