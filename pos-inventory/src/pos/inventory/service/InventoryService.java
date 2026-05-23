@@ -12,7 +12,11 @@ public interface InventoryService {
 
   StockItem initializeStock(StockItem stockItem);
 
+  StockItem updateStock(String productId, Integer stock, Integer minStock);
+
   void reduceStock(String productId, Integer quantity);
 
   void increaseStock(String productId, Integer quantity);
+
+  void deleteStockByProductId(String productId);
 }

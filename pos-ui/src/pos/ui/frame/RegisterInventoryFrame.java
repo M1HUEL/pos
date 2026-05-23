@@ -2,10 +2,12 @@ package pos.ui.frame;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -16,9 +18,13 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableModel;
 import pos.inventory.model.StockItem;
 import pos.product.model.Product;
 import pos.ui.controller.RegisterInventoryController;
@@ -31,11 +37,22 @@ public class RegisterInventoryFrame extends JFrame {
   private JSpinner stockSpinner;
   private JSpinner minStockSpinner;
 
+  private DefaultTableModel tableModel;
+  private JTable table;
+  private final List<String> rowProductIds = new ArrayList<>();
+
+  private JButton initializeButton;
+  private JButton updateButton;
+  private JButton deleteButton;
+
+  private String editingProductId = null;
+
   public RegisterInventoryFrame(RegisterInventoryController controller) {
     this.controller = controller;
     initComponents();
     layoutComponents();
     configureFrame();
+    refreshTable();
   }
 
   private void initComponents() {
@@ -52,13 +69,44 @@ public class RegisterInventoryFrame extends JFrame {
         return this;
       }
     });
-    loadProducts();
+    loadProductCombo();
 
     stockSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 99999, 1));
     minStockSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 99999, 1));
+
+    tableModel = new DefaultTableModel(
+      new String[]{"Product", "SKU", "Stock", "Min Stock"}, 0) {
+      @Override
+      public boolean isCellEditable(int row, int col) {
+        return false;
+      }
+    };
+    table = new JTable(tableModel);
+    table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    table.setRowHeight(24);
+    table.getColumnModel().getColumn(0).setPreferredWidth(200);
+    table.getColumnModel().getColumn(1).setPreferredWidth(100);
+    table.getColumnModel().getColumn(2).setPreferredWidth(80);
+    table.getColumnModel().getColumn(3).setPreferredWidth(80);
+
+    table.getSelectionModel().addListSelectionListener(e -> {
+      if (!e.getValueIsAdjusting()) {
+        handleTableSelection();
+      }
+    });
+
+    initializeButton = new JButton("Initialize Stock");
+    updateButton = new JButton("Update");
+    deleteButton = new JButton("Delete");
+    updateButton.setEnabled(false);
+    deleteButton.setEnabled(false);
+
+    initializeButton.addActionListener(e -> handleInitialize());
+    updateButton.addActionListener(e -> handleUpdate());
+    deleteButton.addActionListener(e -> handleDelete());
   }
 
-  private void loadProducts() {
+  private void loadProductCombo() {
     productCombo.removeAllItems();
     List<Product> products = controller.getAllProducts();
     if (products.isEmpty()) {
@@ -74,7 +122,8 @@ public class RegisterInventoryFrame extends JFrame {
   private void layoutComponents() {
     setLayout(new BorderLayout(8, 8));
     ((JPanel) getContentPane()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    add(buildFormPanel(), BorderLayout.CENTER);
+    add(buildFormPanel(), BorderLayout.NORTH);
+    add(buildTablePanel(), BorderLayout.CENTER);
     add(buildButtonPanel(), BorderLayout.SOUTH);
   }
 
@@ -97,12 +146,10 @@ public class RegisterInventoryFrame extends JFrame {
     panel.add(new JLabel("Product:"), lbl);
     fld.gridy = 0;
     panel.add(productCombo, fld);
-
     lbl.gridy = 1;
-    panel.add(new JLabel("Initial Stock:"), lbl);
+    panel.add(new JLabel("Stock:"), lbl);
     fld.gridy = 1;
     panel.add(stockSpinner, fld);
-
     lbl.gridy = 2;
     panel.add(new JLabel("Min Stock:"), lbl);
     fld.gridy = 2;
@@ -111,18 +158,56 @@ public class RegisterInventoryFrame extends JFrame {
     return panel;
   }
 
+  private JPanel buildTablePanel() {
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setBorder(new TitledBorder("Stock Records"));
+    JScrollPane scroll = new JScrollPane(table);
+    scroll.setPreferredSize(new Dimension(500, 200));
+    panel.add(scroll, BorderLayout.CENTER);
+    return panel;
+  }
+
   private JPanel buildButtonPanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
     JButton clearButton = new JButton("Clear");
     clearButton.addActionListener(e -> handleClear());
-    JButton saveButton = new JButton("Initialize Stock");
-    saveButton.addActionListener(e -> handleSave());
     panel.add(clearButton);
-    panel.add(saveButton);
+    panel.add(deleteButton);
+    panel.add(updateButton);
+    panel.add(initializeButton);
     return panel;
   }
 
-  private void handleSave() {
+  private void handleTableSelection() {
+    int row = table.getSelectedRow();
+    if (row < 0) {
+      editingProductId = null;
+      productCombo.setEnabled(true);
+      initializeButton.setEnabled(true);
+      updateButton.setEnabled(false);
+      deleteButton.setEnabled(false);
+      return;
+    }
+    editingProductId = rowProductIds.get(row);
+    stockSpinner.setValue((Integer) tableModel.getValueAt(row, 2));
+    minStockSpinner.setValue((Integer) tableModel.getValueAt(row, 3));
+
+    controller.findProductById(editingProductId).ifPresent(p -> {
+      for (int i = 0; i < productCombo.getItemCount(); i++) {
+        if (productCombo.getItemAt(i).getId().equals(p.getId())) {
+          productCombo.setSelectedIndex(i);
+          break;
+        }
+      }
+    });
+
+    productCombo.setEnabled(false);
+    initializeButton.setEnabled(false);
+    updateButton.setEnabled(true);
+    deleteButton.setEnabled(true);
+  }
+
+  private void handleInitialize() {
     Product selectedProduct = (Product) productCombo.getSelectedItem();
     if (selectedProduct == null) {
       showError("No product selected.");
@@ -130,7 +215,6 @@ public class RegisterInventoryFrame extends JFrame {
     }
     int stock = (Integer) stockSpinner.getValue();
     int minStock = (Integer) minStockSpinner.getValue();
-
     try {
       StockItem created = controller.initializeStock(selectedProduct.getId(), stock, minStock);
       JOptionPane.showMessageDialog(this,
@@ -138,17 +222,75 @@ public class RegisterInventoryFrame extends JFrame {
         + "Stock: " + created.getStock() + " | Min Stock: " + created.getMinStock(),
         "Stock Initialized", JOptionPane.INFORMATION_MESSAGE);
       handleClear();
+      refreshTable();
     } catch (Exception e) {
       showError("Failed to initialize stock: " + e.getMessage());
     }
   }
 
+  private void handleUpdate() {
+    if (editingProductId == null) {
+      return;
+    }
+    int stock = (Integer) stockSpinner.getValue();
+    int minStock = (Integer) minStockSpinner.getValue();
+    try {
+      controller.updateStock(editingProductId, stock, minStock);
+      JOptionPane.showMessageDialog(this,
+        "Stock updated successfully.",
+        "Stock Updated", JOptionPane.INFORMATION_MESSAGE);
+      handleClear();
+      refreshTable();
+    } catch (Exception e) {
+      showError("Failed to update stock: " + e.getMessage());
+    }
+  }
+
+  private void handleDelete() {
+    if (editingProductId == null) {
+      return;
+    }
+    String productName = (String) tableModel.getValueAt(table.getSelectedRow(), 0);
+    int confirm = JOptionPane.showConfirmDialog(this,
+      "Delete stock record for '" + productName + "'?",
+      "Confirm Delete", JOptionPane.YES_NO_OPTION);
+    if (confirm != JOptionPane.YES_OPTION) {
+      return;
+    }
+    try {
+      controller.deleteStock(editingProductId);
+      handleClear();
+      refreshTable();
+    } catch (Exception e) {
+      showError("Failed to delete stock: " + e.getMessage());
+    }
+  }
+
   private void handleClear() {
+    editingProductId = null;
+    stockSpinner.setValue(0);
+    minStockSpinner.setValue(0);
+    table.clearSelection();
+    productCombo.setEnabled(true);
+    initializeButton.setEnabled(true);
+    updateButton.setEnabled(false);
+    deleteButton.setEnabled(false);
     if (productCombo.getItemCount() > 0) {
       productCombo.setSelectedIndex(0);
     }
-    stockSpinner.setValue(0);
-    minStockSpinner.setValue(0);
+  }
+
+  private void refreshTable() {
+    tableModel.setRowCount(0);
+    rowProductIds.clear();
+    for (StockItem item : controller.getAllStockItems()) {
+      String productName = controller.findProductById(item.getProductId())
+        .map(Product::getName).orElse("Unknown");
+      String sku = controller.findProductById(item.getProductId())
+        .map(Product::getSku).orElse("");
+      tableModel.addRow(new Object[]{productName, sku, item.getStock(), item.getMinStock()});
+      rowProductIds.add(item.getProductId());
+    }
   }
 
   private void showError(String message) {
@@ -156,9 +298,10 @@ public class RegisterInventoryFrame extends JFrame {
   }
 
   private void configureFrame() {
-    setTitle("Register Inventory");
+    setTitle("Inventory");
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     pack();
+    setMinimumSize(new Dimension(580, 520));
     setLocationRelativeTo(null);
   }
 }

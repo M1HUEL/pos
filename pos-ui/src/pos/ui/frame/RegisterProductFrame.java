@@ -1,11 +1,14 @@
 package pos.ui.frame;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -13,8 +16,12 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableModel;
 import pos.product.model.Product;
 import pos.ui.controller.RegisterProductController;
 
@@ -28,11 +35,22 @@ public class RegisterProductFrame extends JFrame {
   private JTextField priceField;
   private JCheckBox activeCheckBox;
 
+  private DefaultTableModel tableModel;
+  private JTable table;
+  private final List<String> rowProductIds = new ArrayList<>();
+
+  private JButton saveButton;
+  private JButton updateButton;
+  private JButton deleteButton;
+
+  private String editingProductId = null;
+
   public RegisterProductFrame(RegisterProductController controller) {
     this.controller = controller;
     initComponents();
     layoutComponents();
     configureFrame();
+    refreshTable();
   }
 
   private void initComponents() {
@@ -41,12 +59,45 @@ public class RegisterProductFrame extends JFrame {
     descriptionField = new JTextField(20);
     priceField = new JTextField("0.00", 20);
     activeCheckBox = new JCheckBox("Active", true);
+
+    tableModel = new DefaultTableModel(
+      new String[]{"SKU", "Name", "Description", "Price", "Active"}, 0) {
+      @Override
+      public boolean isCellEditable(int row, int col) {
+        return false;
+      }
+    };
+    table = new JTable(tableModel);
+    table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    table.setRowHeight(24);
+    table.getColumnModel().getColumn(0).setPreferredWidth(80);
+    table.getColumnModel().getColumn(1).setPreferredWidth(150);
+    table.getColumnModel().getColumn(2).setPreferredWidth(200);
+    table.getColumnModel().getColumn(3).setPreferredWidth(80);
+    table.getColumnModel().getColumn(4).setPreferredWidth(60);
+
+    table.getSelectionModel().addListSelectionListener(e -> {
+      if (!e.getValueIsAdjusting()) {
+        handleTableSelection();
+      }
+    });
+
+    saveButton = new JButton("Save Product");
+    updateButton = new JButton("Update");
+    deleteButton = new JButton("Delete");
+    updateButton.setEnabled(false);
+    deleteButton.setEnabled(false);
+
+    saveButton.addActionListener(e -> handleSave());
+    updateButton.addActionListener(e -> handleUpdate());
+    deleteButton.addActionListener(e -> handleDelete());
   }
 
   private void layoutComponents() {
     setLayout(new BorderLayout(8, 8));
     ((JPanel) getContentPane()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    add(buildFormPanel(), BorderLayout.CENTER);
+    add(buildFormPanel(), BorderLayout.NORTH);
+    add(buildTablePanel(), BorderLayout.CENTER);
     add(buildButtonPanel(), BorderLayout.SOUTH);
   }
 
@@ -69,22 +120,18 @@ public class RegisterProductFrame extends JFrame {
     panel.add(new JLabel("SKU:"), lbl);
     fld.gridy = 0;
     panel.add(skuField, fld);
-
     lbl.gridy = 1;
     panel.add(new JLabel("Name:"), lbl);
     fld.gridy = 1;
     panel.add(nameField, fld);
-
     lbl.gridy = 2;
     panel.add(new JLabel("Description:"), lbl);
     fld.gridy = 2;
     panel.add(descriptionField, fld);
-
     lbl.gridy = 3;
     panel.add(new JLabel("Price ($):"), lbl);
     fld.gridy = 3;
     panel.add(priceField, fld);
-
     lbl.gridy = 4;
     panel.add(new JLabel("Status:"), lbl);
     fld.gridy = 4;
@@ -93,15 +140,42 @@ public class RegisterProductFrame extends JFrame {
     return panel;
   }
 
+  private JPanel buildTablePanel() {
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setBorder(new TitledBorder("Products"));
+    JScrollPane scroll = new JScrollPane(table);
+    scroll.setPreferredSize(new Dimension(600, 200));
+    panel.add(scroll, BorderLayout.CENTER);
+    return panel;
+  }
+
   private JPanel buildButtonPanel() {
     JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
     JButton clearButton = new JButton("Clear");
     clearButton.addActionListener(e -> handleClear());
-    JButton saveButton = new JButton("Save Product");
-    saveButton.addActionListener(e -> handleSave());
     panel.add(clearButton);
+    panel.add(deleteButton);
+    panel.add(updateButton);
     panel.add(saveButton);
     return panel;
+  }
+
+  private void handleTableSelection() {
+    int row = table.getSelectedRow();
+    if (row < 0) {
+      editingProductId = null;
+      updateButton.setEnabled(false);
+      deleteButton.setEnabled(false);
+      return;
+    }
+    editingProductId = rowProductIds.get(row);
+    skuField.setText((String) tableModel.getValueAt(row, 0));
+    nameField.setText((String) tableModel.getValueAt(row, 1));
+    descriptionField.setText((String) tableModel.getValueAt(row, 2));
+    priceField.setText(tableModel.getValueAt(row, 3).toString());
+    activeCheckBox.setSelected((Boolean) tableModel.getValueAt(row, 4));
+    updateButton.setEnabled(true);
+    deleteButton.setEnabled(true);
   }
 
   private void handleSave() {
@@ -109,12 +183,10 @@ public class RegisterProductFrame extends JFrame {
     String name = nameField.getText().trim();
     String description = descriptionField.getText().trim();
     boolean active = activeCheckBox.isSelected();
-
     if (sku.isEmpty() || name.isEmpty()) {
       showError("SKU and Name are required.");
       return;
     }
-
     BigDecimal price;
     try {
       price = new BigDecimal(priceField.getText().trim());
@@ -122,25 +194,90 @@ public class RegisterProductFrame extends JFrame {
       showError("Invalid price format.");
       return;
     }
-
     try {
       Product created = controller.createProduct(sku, name, description, price, active);
       JOptionPane.showMessageDialog(this,
         "Product '" + created.getName() + "' saved successfully.",
         "Product Saved", JOptionPane.INFORMATION_MESSAGE);
       handleClear();
+      refreshTable();
     } catch (Exception e) {
       showError("Failed to save product: " + e.getMessage());
     }
   }
 
+  private void handleUpdate() {
+    if (editingProductId == null) {
+      return;
+    }
+    String sku = skuField.getText().trim();
+    String name = nameField.getText().trim();
+    String description = descriptionField.getText().trim();
+    boolean active = activeCheckBox.isSelected();
+    if (sku.isEmpty() || name.isEmpty()) {
+      showError("SKU and Name are required.");
+      return;
+    }
+    BigDecimal price;
+    try {
+      price = new BigDecimal(priceField.getText().trim());
+    } catch (NumberFormatException e) {
+      showError("Invalid price format.");
+      return;
+    }
+    try {
+      controller.updateProduct(editingProductId, sku, name, description, price, active);
+      JOptionPane.showMessageDialog(this,
+        "Product updated successfully.",
+        "Product Updated", JOptionPane.INFORMATION_MESSAGE);
+      handleClear();
+      refreshTable();
+    } catch (Exception e) {
+      showError("Failed to update product: " + e.getMessage());
+    }
+  }
+
+  private void handleDelete() {
+    if (editingProductId == null) {
+      return;
+    }
+    int confirm = JOptionPane.showConfirmDialog(this,
+      "Delete product '" + nameField.getText().trim() + "'?",
+      "Confirm Delete", JOptionPane.YES_NO_OPTION);
+    if (confirm != JOptionPane.YES_OPTION) {
+      return;
+    }
+    try {
+      controller.deleteProduct(editingProductId);
+      handleClear();
+      refreshTable();
+    } catch (Exception e) {
+      showError("Failed to delete product: " + e.getMessage());
+    }
+  }
+
   private void handleClear() {
+    editingProductId = null;
     skuField.setText("");
     nameField.setText("");
     descriptionField.setText("");
     priceField.setText("0.00");
     activeCheckBox.setSelected(true);
+    table.clearSelection();
+    updateButton.setEnabled(false);
+    deleteButton.setEnabled(false);
     skuField.requestFocus();
+  }
+
+  private void refreshTable() {
+    tableModel.setRowCount(0);
+    rowProductIds.clear();
+    for (Product p : controller.getAllProducts()) {
+      tableModel.addRow(new Object[]{
+        p.getSku(), p.getName(), p.getDescription(), p.getPrice(), p.getActive()
+      });
+      rowProductIds.add(p.getId());
+    }
   }
 
   private void showError(String message) {
@@ -148,9 +285,10 @@ public class RegisterProductFrame extends JFrame {
   }
 
   private void configureFrame() {
-    setTitle("Register Product");
+    setTitle("Products");
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     pack();
+    setMinimumSize(new Dimension(680, 560));
     setLocationRelativeTo(null);
   }
 }

@@ -45,6 +45,23 @@ public class InventoryServiceImpl implements InventoryService {
   }
 
   @Override
+  public StockItem updateStock(String productId, Integer stock, Integer minStock) {
+    inventoryValidator.validateProductId(productId);
+    if (stock == null || stock < 0) {
+      throw new InventoryException("Stock quantity cannot be null or negative");
+    }
+    if (minStock == null || minStock < 0) {
+      throw new InventoryException("Minimum stock cannot be null or negative");
+    }
+    StockItem stockItem = inventoryRepository.findByProductId(productId)
+      .orElseThrow(() -> new InventoryException(
+      "No stock record found for product ID: " + productId));
+    stockItem.setStock(stock);
+    stockItem.setMinStock(minStock);
+    return inventoryRepository.update(stockItem);
+  }
+
+  @Override
   public void reduceStock(String productId, Integer quantity) {
     inventoryValidator.validateProductId(productId);
 
@@ -76,4 +93,10 @@ public class InventoryServiceImpl implements InventoryService {
     inventoryRepository.update(stockItem);
   }
 
+  @Override
+  public void deleteStockByProductId(String productId) {
+    inventoryValidator.validateProductId(productId);
+    inventoryRepository.findByProductId(productId)
+      .ifPresent(stockItem -> inventoryRepository.deleteById(stockItem.getId()));
+  }
 }
