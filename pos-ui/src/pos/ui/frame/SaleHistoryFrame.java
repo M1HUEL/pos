@@ -27,14 +27,14 @@ import javax.swing.table.TableRowSorter;
 import pos.sale.model.Sale;
 import pos.sale.model.SaleItem;
 import pos.sale.model.SaleStatus;
-import pos.ui.controller.SalesHistoryController;
+import pos.ui.controller.SaleHistoryController;
 
-public class SalesHistoryFrame extends JFrame {
+public class SaleHistoryFrame extends JFrame {
 
   private static final DateTimeFormatter DATE_FORMAT
     = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-  private final SalesHistoryController controller;
+  private final SaleHistoryController controller;
 
   private JTextField searchField;
   private DefaultTableModel salesTableModel;
@@ -47,7 +47,7 @@ public class SalesHistoryFrame extends JFrame {
 
   private JButton cancelButton;
 
-  public SalesHistoryFrame(SalesHistoryController controller) {
+  public SaleHistoryFrame(SaleHistoryController controller) {
     this.controller = controller;
     initComponents();
     layoutComponents();

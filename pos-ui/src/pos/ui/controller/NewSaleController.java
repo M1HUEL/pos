@@ -13,13 +13,13 @@ import pos.sale.model.Sale;
 import pos.sale.model.SaleItem;
 import pos.sale.service.SaleService;
 
-public class RegisterSaleController {
+public class NewSaleController {
 
   private final SaleService saleService;
   private final ProductService productService;
   private final List<SaleItem> currentItems = new ArrayList<>();
 
-  public RegisterSaleController(SaleService saleService, ProductService productService) {
+  public NewSaleController(SaleService saleService, ProductService productService) {
     this.saleService = saleService;
     this.productService = productService;
   }

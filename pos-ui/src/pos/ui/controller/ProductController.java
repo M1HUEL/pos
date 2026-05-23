@@ -5,11 +5,11 @@ import java.util.List;
 import pos.product.model.Product;
 import pos.product.service.ProductService;
 
-public class RegisterProductController {
+public class ProductController {
 
   private final ProductService productService;
 
-  public RegisterProductController(ProductService productService) {
+  public ProductController(ProductService productService) {
     this.productService = productService;
   }
 

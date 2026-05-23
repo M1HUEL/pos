@@ -12,23 +12,23 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import pos.inventory.model.StockItem;
 import pos.product.model.Product;
-import pos.ui.controller.RegisterInventoryController;
-import pos.ui.controller.RegisterProductController;
-import pos.ui.controller.RegisterSaleController;
-import pos.ui.controller.SalesHistoryController;
+import pos.ui.controller.InventoryController;
+import pos.ui.controller.ProductController;
+import pos.ui.controller.NewSaleController;
+import pos.ui.controller.SaleHistoryController;
 
-public class MainMenuFrame extends JFrame {
+public class MainFrame extends JFrame {
 
-  private final RegisterProductController productController;
-  private final RegisterInventoryController inventoryController;
-  private final RegisterSaleController saleController;
-  private final SalesHistoryController salesHistoryController;
+  private final ProductController productController;
+  private final InventoryController inventoryController;
+  private final NewSaleController saleController;
+  private final SaleHistoryController salesHistoryController;
 
-  public MainMenuFrame(
-    RegisterProductController productController,
-    RegisterInventoryController inventoryController,
-    RegisterSaleController saleController,
-    SalesHistoryController salesHistoryController) {
+  public MainFrame(
+    ProductController productController,
+    InventoryController inventoryController,
+    NewSaleController saleController,
+    SaleHistoryController salesHistoryController) {
     this.productController = productController;
     this.inventoryController = inventoryController;
     this.saleController = saleController;
@@ -53,13 +53,13 @@ public class MainMenuFrame extends JFrame {
     JButton lowStockButton = new JButton("Low Stock Alert");
 
     productsButton.addActionListener(e
-      -> new RegisterProductFrame(productController).setVisible(true));
+      -> new ProductFrame(productController).setVisible(true));
     inventoryButton.addActionListener(e
-      -> new RegisterInventoryFrame(inventoryController).setVisible(true));
+      -> new InventoryFrame(inventoryController).setVisible(true));
     registerSaleButton.addActionListener(e
-      -> new RegisterSaleFrame(saleController).setVisible(true));
+      -> new NewSaleFrame(saleController).setVisible(true));
     viewSalesButton.addActionListener(e
-      -> new SalesHistoryFrame(salesHistoryController).setVisible(true));
+      -> new SaleHistoryFrame(salesHistoryController).setVisible(true));
     lowStockButton.addActionListener(e -> handleLowStockAlert());
 
     buttonPanel.add(productsButton);

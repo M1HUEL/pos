@@ -7,12 +7,12 @@ import pos.inventory.service.InventoryService;
 import pos.product.model.Product;
 import pos.product.service.ProductService;
 
-public class RegisterInventoryController {
+public class InventoryController {
 
   private final InventoryService inventoryService;
   private final ProductService productService;
 
-  public RegisterInventoryController(InventoryService inventoryService,
+  public InventoryController(InventoryService inventoryService,
     ProductService productService) {
     this.inventoryService = inventoryService;
     this.productService = productService;

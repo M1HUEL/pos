@@ -4,11 +4,11 @@ import java.util.List;
 import pos.sale.model.Sale;
 import pos.sale.service.SaleService;
 
-public class SalesHistoryController {
+public class SaleHistoryController {
 
   private final SaleService saleService;
 
-  public SalesHistoryController(SaleService saleService) {
+  public SaleHistoryController(SaleService saleService) {
     this.saleService = saleService;
   }
 

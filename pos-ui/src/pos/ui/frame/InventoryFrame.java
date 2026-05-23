@@ -33,11 +33,11 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import pos.inventory.model.StockItem;
 import pos.product.model.Product;
-import pos.ui.controller.RegisterInventoryController;
+import pos.ui.controller.InventoryController;
 
-public class RegisterInventoryFrame extends JFrame {
+public class InventoryFrame extends JFrame {
 
-  private final RegisterInventoryController controller;
+  private final InventoryController controller;
 
   private JComboBox<Product> productCombo;
   private JSpinner stockSpinner;
@@ -55,7 +55,7 @@ public class RegisterInventoryFrame extends JFrame {
 
   private String editingProductId = null;
 
-  public RegisterInventoryFrame(RegisterInventoryController controller) {
+  public InventoryFrame(InventoryController controller) {
     this.controller = controller;
     initComponents();
     layoutComponents();

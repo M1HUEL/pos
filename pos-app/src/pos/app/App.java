@@ -23,11 +23,11 @@ import pos.sale.repository.SaleRepository;
 import pos.sale.service.SaleService;
 import pos.sale.service.SaleServiceImpl;
 import pos.sale.validation.SaleValidator;
-import pos.ui.controller.RegisterInventoryController;
-import pos.ui.controller.RegisterProductController;
-import pos.ui.controller.RegisterSaleController;
-import pos.ui.controller.SalesHistoryController;
-import pos.ui.frame.MainMenuFrame;
+import pos.ui.controller.InventoryController;
+import pos.ui.controller.NewSaleController;
+import pos.ui.controller.ProductController;
+import pos.ui.controller.SaleHistoryController;
+import pos.ui.frame.MainFrame;
 
 public class App {
 
@@ -62,17 +62,17 @@ public class App {
 
     productService.addListener(new InventoryEventListener(inventoryRepository));
 
-    RegisterSaleController registerSaleController = new RegisterSaleController(saleService, productService);
-    RegisterProductController registerProductController = new RegisterProductController(productService);
-    RegisterInventoryController registerInventoryController = new RegisterInventoryController(inventoryService, productService);
-    SalesHistoryController salesHistoryController = new SalesHistoryController(saleService);
+    NewSaleController newSaleController = new NewSaleController(saleService, productService);
+    ProductController productController = new ProductController(productService);
+    InventoryController inventoryController = new InventoryController(inventoryService, productService);
+    SaleHistoryController saleHistoryController = new SaleHistoryController(saleService);
 
     SwingUtilities.invokeLater(()
-      -> new MainMenuFrame(
-        registerProductController,
-        registerInventoryController,
-        registerSaleController,
-        salesHistoryController
+      -> new MainFrame(
+        productController,
+        inventoryController,
+        newSaleController,
+        saleHistoryController
       ).setVisible(true)
     );
   }

@@ -35,11 +35,11 @@ import pos.product.model.Product;
 import pos.sale.model.PaymentMethod;
 import pos.sale.model.Sale;
 import pos.sale.model.SaleItem;
-import pos.ui.controller.RegisterSaleController;
+import pos.ui.controller.NewSaleController;
 
-public class RegisterSaleFrame extends JFrame {
+public class NewSaleFrame extends JFrame {
 
-  private final RegisterSaleController controller;
+  private final NewSaleController controller;
 
   private JTextField saleNumberField;
   private JComboBox<PaymentMethod> paymentMethodCombo;
@@ -56,7 +56,7 @@ public class RegisterSaleFrame extends JFrame {
   private JTextField taxAmountField;
   private JLabel totalLabel;
 
-  public RegisterSaleFrame(RegisterSaleController controller) {
+  public NewSaleFrame(NewSaleController controller) {
     this.controller = controller;
     initComponents();
     layoutComponents();

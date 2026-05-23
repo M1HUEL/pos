@@ -28,11 +28,11 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import pos.product.model.Product;
-import pos.ui.controller.RegisterProductController;
+import pos.ui.controller.ProductController;
 
-public class RegisterProductFrame extends JFrame {
+public class ProductFrame extends JFrame {
 
-  private final RegisterProductController controller;
+  private final ProductController controller;
 
   private JTextField skuField;
   private JTextField nameField;
@@ -52,7 +52,7 @@ public class RegisterProductFrame extends JFrame {
 
   private String editingProductId = null;
 
-  public RegisterProductFrame(RegisterProductController controller) {
+  public ProductFrame(ProductController controller) {
     this.controller = controller;
     initComponents();
     layoutComponents();
