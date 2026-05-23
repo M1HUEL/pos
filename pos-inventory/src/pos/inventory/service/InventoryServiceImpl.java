@@ -26,7 +26,7 @@ public class InventoryServiceImpl implements InventoryService {
   }
 
   @Override
-  public Optional<StockItem> getStockByProductId(Long productId) {
+  public Optional<StockItem> getStockByProductId(String productId) {
     inventoryValidator.validateProductId(productId);
     return inventoryRepository.findByProductId(productId);
   }
@@ -41,11 +41,11 @@ public class InventoryServiceImpl implements InventoryService {
       throw new InventoryException("Stock records already exist for product ID: " + stockItem.getProductId());
     }
 
-    return inventoryRepository.save(stockItem);
+    return inventoryRepository.create(stockItem);
   }
 
   @Override
-  public void reduceStock(Long productId, Integer quantity) {
+  public void reduceStock(String productId, Integer quantity) {
     inventoryValidator.validateProductId(productId);
 
     if (quantity == null || quantity <= 0) {
@@ -59,11 +59,11 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     stockItem.setStock(stockItem.getStock() - quantity);
-    inventoryRepository.save(stockItem);
+    inventoryRepository.update(stockItem);
   }
 
   @Override
-  public void increaseStock(Long productId, Integer quantity) {
+  public void increaseStock(String productId, Integer quantity) {
     inventoryValidator.validateProductId(productId);
 
     if (quantity == null || quantity <= 0) {
@@ -73,7 +73,7 @@ public class InventoryServiceImpl implements InventoryService {
     StockItem stockItem = inventoryRepository.findByProductId(productId).orElseThrow(() -> new InventoryException("No stock record found for product ID: " + productId));
 
     stockItem.setStock(stockItem.getStock() + quantity);
-    inventoryRepository.save(stockItem);
+    inventoryRepository.update(stockItem);
   }
 
 }

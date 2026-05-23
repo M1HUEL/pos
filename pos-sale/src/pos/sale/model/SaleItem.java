@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 
 public class SaleItem {
 
-  private Long id;
-  private Long productId;
+  private String id;
+  private String productId;
   private String productName;
   private Integer quantity;
   private BigDecimal unitPrice;
@@ -16,7 +16,7 @@ public class SaleItem {
     // ...
   }
 
-  public SaleItem(Long id, Long productId, String productName, Integer quantity, BigDecimal unitPrice, BigDecimal discountAmount, BigDecimal subTotal) {
+  public SaleItem(String id, String productId, String productName, Integer quantity, BigDecimal unitPrice, BigDecimal discountAmount, BigDecimal subTotal) {
     this.id = id;
     this.productId = productId;
     this.productName = productName;
@@ -26,11 +26,11 @@ public class SaleItem {
     this.subTotal = subTotal;
   }
 
-  public Long getId() {
+  public String getId() {
     return id;
   }
 
-  public Long getProductId() {
+  public String getProductId() {
     return productId;
   }
 
@@ -54,11 +54,11 @@ public class SaleItem {
     return subTotal;
   }
 
-  public void setId(Long id) {
+  public void setId(String id) {
     this.id = id;
   }
 
-  public void setProductId(Long productId) {
+  public void setProductId(String productId) {
     this.productId = productId;
   }
 

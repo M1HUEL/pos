@@ -4,29 +4,27 @@ import java.math.BigDecimal;
 
 public class Product {
 
-  private Long id;
+  private String id;
   private String sku;
   private String name;
   private String description;
   private BigDecimal price;
-  private Integer stock;
   private Boolean active;
 
   public Product() {
     // ...
   }
 
-  public Product(Long id, String sku, String name, String description, BigDecimal price, Integer stock, Boolean active) {
+  public Product(String id, String sku, String name, String description, BigDecimal price, Boolean active) {
     this.id = id;
     this.sku = sku;
     this.name = name;
     this.description = description;
     this.price = price;
-    this.stock = stock;
     this.active = active;
   }
 
-  public Long getId() {
+  public String getId() {
     return id;
   }
 
@@ -46,15 +44,11 @@ public class Product {
     return price;
   }
 
-  public Integer getStock() {
-    return stock;
-  }
-
   public Boolean getActive() {
     return active;
   }
 
-  public void setId(Long id) {
+  public void setId(String id) {
     this.id = id;
   }
 
@@ -72,10 +66,6 @@ public class Product {
 
   public void setPrice(BigDecimal price) {
     this.price = price;
-  }
-
-  public void setStock(Integer stock) {
-    this.stock = stock;
   }
 
   public void setActive(Boolean active) {

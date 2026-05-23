@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Sale {
 
-  private Long id;
+  private String id;
   private String saleNumber;
   private LocalDateTime dateTime;
   private List<SaleItem> items;
@@ -20,7 +20,7 @@ public class Sale {
     // ...
   }
 
-  public Sale(Long id, String saleNumber, LocalDateTime dateTime, List<SaleItem> items, BigDecimal totalAmount, BigDecimal taxAmount, BigDecimal discountAmount, String paymentMethod, SaleStatus status) {
+  public Sale(String id, String saleNumber, LocalDateTime dateTime, List<SaleItem> items, BigDecimal totalAmount, BigDecimal taxAmount, BigDecimal discountAmount, String paymentMethod, SaleStatus status) {
     this.id = id;
     this.saleNumber = saleNumber;
     this.dateTime = dateTime;
@@ -32,7 +32,7 @@ public class Sale {
     this.status = status;
   }
 
-  public Long getId() {
+  public String getId() {
     return id;
   }
 
@@ -68,7 +68,7 @@ public class Sale {
     return status;
   }
 
-  public void setId(Long id) {
+  public void setId(String id) {
     this.id = id;
   }
 

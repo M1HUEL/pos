@@ -1,6 +1,7 @@
 package pos.sale.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import pos.inventory.service.InventoryService;
@@ -29,7 +30,7 @@ public class SaleServiceImpl implements SaleService {
   }
 
   @Override
-  public Optional<Sale> getSaleById(Long id) {
+  public Optional<Sale> getSaleById(String id) {
     saleValidator.validateId(id);
     return saleRepository.findById(id);
   }
@@ -52,27 +53,32 @@ public class SaleServiceImpl implements SaleService {
       throw new SaleException("Sale with number '" + sale.getSaleNumber() + "' already exists");
     }
 
-    for (SaleItem item : sale.getItems()) {
-      try {
+    List<SaleItem> processedItems = new ArrayList<>();
+    try {
+      for (SaleItem item : sale.getItems()) {
         inventoryService.reduceStock(item.getProductId(), item.getQuantity());
-      } catch (RuntimeException e) {
-        throw new SaleException("Failed to process sale item for product ID: " + item.getProductId() + ". " + e.getMessage(), e);
+
+        processedItems.add(item);
       }
+    } catch (RuntimeException e) {
+      for (SaleItem processed : processedItems) {
+        inventoryService.increaseStock(processed.getProductId(), processed.getQuantity());
+      }
+
+      throw new SaleException("Failed to process sale item for product ID. " + e.getMessage(), e);
     }
 
     if (sale.getDateTime() == null) {
       sale.setDateTime(LocalDateTime.now());
     }
 
-    if (sale.getStatus() == null) {
-      sale.setStatus(SaleStatus.COMPLETED);
-    }
+    sale.setStatus(SaleStatus.COMPLETED);
 
-    return saleRepository.save(sale);
+    return saleRepository.create(sale);
   }
 
   @Override
-  public void cancelSale(Long id) {
+  public void cancelSale(String id) {
     saleValidator.validateId(id);
 
     Sale sale = saleRepository.findById(id).orElseThrow(() -> new SaleException("Cannot cancel non-existing sale with ID: " + id));
@@ -81,11 +87,24 @@ public class SaleServiceImpl implements SaleService {
       throw new SaleException("Sale with ID: " + id + " is already canceled");
     }
 
-    for (SaleItem item : sale.getItems()) {
-      inventoryService.increaseStock(item.getProductId(), item.getQuantity());
+    List<SaleItem> restoredItems = new ArrayList<>();
+
+    try {
+      for (SaleItem item : sale.getItems()) {
+        inventoryService.increaseStock(item.getProductId(), item.getQuantity());
+
+        restoredItems.add(item);
+      }
+    } catch (RuntimeException e) {
+      for (SaleItem restored : restoredItems) {
+        inventoryService.reduceStock(restored.getProductId(), restored.getQuantity());
+      }
+
+      throw new SaleException("Failed to restore stock during cancellation. " + e.getMessage(), e);
     }
 
     sale.setStatus(SaleStatus.CANCELED);
-    saleRepository.save(sale);
+
+    saleRepository.update(sale);
   }
 }

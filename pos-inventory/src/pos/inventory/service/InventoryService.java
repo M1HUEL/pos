@@ -8,11 +8,11 @@ public interface InventoryService {
 
   List<StockItem> getAllStockItems();
 
-  Optional<StockItem> getStockByProductId(Long productId);
+  Optional<StockItem> getStockByProductId(String productId);
 
   StockItem initializeStock(StockItem stockItem);
 
-  void reduceStock(Long productId, Integer quantity);
+  void reduceStock(String productId, Integer quantity);
 
-  void increaseStock(Long productId, Integer quantity);
+  void increaseStock(String productId, Integer quantity);
 }

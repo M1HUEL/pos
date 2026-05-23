@@ -1,14 +1,18 @@
 package pos.product.validation;
 
 import java.math.BigDecimal;
+import org.bson.types.ObjectId;
 import pos.product.exception.ProductException;
 import pos.product.model.Product;
 
 public class ProductValidator {
 
-  public void validateId(Long id) {
-    if (id == null) {
-      throw new ProductException("Product ID cannot be null");
+  public void validateId(String id) {
+    if (id == null || id.trim().isEmpty()) {
+      throw new ProductException("Product ID cannot be null or empty");
+    }
+    if (!ObjectId.isValid(id)) {
+      throw new ProductException("Product ID has an invalid format");
     }
   }
 
@@ -22,17 +26,11 @@ public class ProductValidator {
     if (product == null) {
       throw new ProductException("Product data cannot be null");
     }
-
     if (product.getName() == null || product.getName().trim().isEmpty()) {
       throw new ProductException("Product name cannot be null or empty");
     }
-
     if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) < 0) {
       throw new ProductException("Product price cannot be null or negative");
-    }
-
-    if (product.getStock() == null || product.getStock() < 0) {
-      throw new ProductException("Product stock cannot be null or negative");
     }
   }
 }

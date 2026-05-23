@@ -8,3 +8,6 @@
 /pos-product/build/
 /pos-inventory/dist/
 /pos-inventory/build/
+/pos-database/nbproject/private/
+/pos-database/build/
+/pos-database/dist/

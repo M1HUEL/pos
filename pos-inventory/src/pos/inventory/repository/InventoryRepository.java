@@ -8,9 +8,13 @@ public interface InventoryRepository {
 
   List<StockItem> findAll();
 
-  Optional<StockItem> findById(Long id);
+  Optional<StockItem> findById(String id);
 
-  Optional<StockItem> findByProductId(Long productId);
+  Optional<StockItem> findByProductId(String productId);
 
-  StockItem save(StockItem stockItem);
+  StockItem create(StockItem stockItem);
+
+  StockItem update(StockItem stockItem);
+
+  void deleteById(String id);
 }

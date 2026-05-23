@@ -1,19 +1,26 @@
 package pos.inventory.validation;
 
+import org.bson.types.ObjectId;
 import pos.inventory.exception.InventoryException;
 import pos.inventory.model.StockItem;
 
 public class InventoryValidator {
 
-  public void validateId(Long id) {
-    if (id == null) {
-      throw new InventoryException("Stock item ID cannot be null");
+  public void validateId(String id) {
+    if (id == null || id.trim().isEmpty()) {
+      throw new InventoryException("Stock item ID cannot be null or empty");
+    }
+    if (!ObjectId.isValid(id)) {
+      throw new InventoryException("Stock item ID has an invalid format");
     }
   }
 
-  public void validateProductId(Long productId) {
-    if (productId == null) {
-      throw new InventoryException("Product ID cannot be null");
+  public void validateProductId(String productId) {
+    if (productId == null || productId.trim().isEmpty()) {
+      throw new InventoryException("Product ID cannot be null or empty");
+    }
+    if (!ObjectId.isValid(productId)) {
+      throw new InventoryException("Product ID has an invalid format");
     }
   }
 
@@ -22,8 +29,11 @@ public class InventoryValidator {
       throw new InventoryException("Stock item data cannot be null");
     }
 
-    if (stockItem.getProductId() == null) {
+    if (stockItem.getProductId() == null || stockItem.getProductId().trim().isEmpty()) {
       throw new InventoryException("Product ID is required for stock item");
+    }
+    if (!ObjectId.isValid(stockItem.getProductId())) {
+      throw new InventoryException("Product ID associated with the stock item has an invalid format");
     }
 
     if (stockItem.getStock() == null || stockItem.getStock() < 0) {

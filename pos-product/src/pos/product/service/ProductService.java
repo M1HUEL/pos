@@ -8,7 +8,7 @@ public interface ProductService {
 
   List<Product> getAllProducts();
 
-  Optional<Product> getProductById(Long id);
+  Optional<Product> getProductById(String id);
 
   Optional<Product> getProductBySku(String sku);
 
@@ -16,5 +16,5 @@ public interface ProductService {
 
   Product updateProduct(Product product);
 
-  void deleteProduct(Long id);
+  void deleteProduct(String id);
 }

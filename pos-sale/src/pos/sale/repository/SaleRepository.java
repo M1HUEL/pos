@@ -8,11 +8,13 @@ public interface SaleRepository {
 
   List<Sale> findAll();
 
-  Optional<Sale> findById(Long id);
+  Optional<Sale> findById(String id);
 
   Optional<Sale> findBySaleNumber(String saleNumber);
 
-  Sale save(Sale sale);
+  Sale create(Sale sale);
 
-  void deleteById(Long id);
+  Sale update(Sale sale);
+
+  void deleteById(String id);
 }

@@ -8,11 +8,11 @@ public interface SaleService {
 
   List<Sale> getAllSales();
 
-  Optional<Sale> getSaleById(Long id);
+  Optional<Sale> getSaleById(String id);
 
   Optional<Sale> getSaleByNumber(String saleNumber);
 
   Sale createSale(Sale sale);
 
-  void cancelSale(Long id);
+  void cancelSale(String id);
 }

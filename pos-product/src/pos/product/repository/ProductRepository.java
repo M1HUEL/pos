@@ -8,11 +8,13 @@ public interface ProductRepository {
 
   List<Product> findAll();
 
-  Optional<Product> findById(Long id);
+  Optional<Product> findById(String id);
 
   Optional<Product> findBySku(String sku);
 
-  Product save(Product product);
+  Product create(Product product);
 
-  void deleteById(Long id);
+  Product update(Product product);
+
+  void deleteById(String id);
 }

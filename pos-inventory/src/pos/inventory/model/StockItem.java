@@ -2,8 +2,8 @@ package pos.inventory.model;
 
 public class StockItem {
 
-  private Long id;
-  private Long productId;
+  private String id;
+  private String productId;
   private Integer stock;
   private Integer minStock;
 
@@ -11,18 +11,18 @@ public class StockItem {
     // ...
   }
 
-  public StockItem(Long id, Long productId, Integer stock, Integer minStock) {
+  public StockItem(String id, String productId, Integer stock, Integer minStock) {
     this.id = id;
     this.productId = productId;
     this.stock = stock;
     this.minStock = minStock;
   }
 
-  public Long getId() {
+  public String getId() {
     return id;
   }
 
-  public Long getProductId() {
+  public String getProductId() {
     return productId;
   }
 
@@ -34,11 +34,11 @@ public class StockItem {
     return minStock;
   }
 
-  public void setId(Long id) {
+  public void setId(String id) {
     this.id = id;
   }
 
-  public void setProductId(Long productId) {
+  public void setProductId(String productId) {
     this.productId = productId;
   }
 

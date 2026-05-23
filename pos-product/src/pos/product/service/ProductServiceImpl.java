@@ -1,8 +1,10 @@
 package pos.product.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import pos.product.exception.ProductException;
+import pos.product.listener.ProductEventListener;
 import pos.product.model.Product;
 import pos.product.repository.ProductRepository;
 import pos.product.validation.ProductValidator;
@@ -11,10 +13,15 @@ public class ProductServiceImpl implements ProductService {
 
   private final ProductRepository productRepository;
   private final ProductValidator productValidator;
+  private final List<ProductEventListener> eventListeners = new ArrayList<>();
 
   public ProductServiceImpl(ProductRepository productRepository, ProductValidator productValidator) {
     this.productRepository = productRepository;
     this.productValidator = productValidator;
+  }
+
+  public void addListener(ProductEventListener listener) {
+    eventListeners.add(listener);
   }
 
   @Override
@@ -23,7 +30,7 @@ public class ProductServiceImpl implements ProductService {
   }
 
   @Override
-  public Optional<Product> getProductById(Long id) {
+  public Optional<Product> getProductById(String id) {
     productValidator.validateId(id);
     return productRepository.findById(id);
   }
@@ -47,7 +54,7 @@ public class ProductServiceImpl implements ProductService {
       product.setActive(true);
     }
 
-    return productRepository.save(product);
+    return productRepository.create(product);
   }
 
   @Override
@@ -70,11 +77,11 @@ public class ProductServiceImpl implements ProductService {
       throw new ProductException("Another product with SKU '" + product.getSku() + "' already exists");
     }
 
-    return productRepository.save(product);
+    return productRepository.update(product);
   }
 
   @Override
-  public void deleteProduct(Long id) {
+  public void deleteProduct(String id) {
     productValidator.validateId(id);
 
     if (!productRepository.findById(id).isPresent()) {
@@ -82,5 +89,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     productRepository.deleteById(id);
+
+    eventListeners.forEach(listener -> listener.onProductDeleted(id));
   }
 }
