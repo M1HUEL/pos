@@ -9,6 +9,7 @@ import java.awt.Insets;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -20,8 +21,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import pos.product.model.Product;
 import pos.ui.controller.RegisterProductController;
 
@@ -35,8 +40,10 @@ public class RegisterProductFrame extends JFrame {
   private JTextField priceField;
   private JCheckBox activeCheckBox;
 
+  private JTextField searchField;
   private DefaultTableModel tableModel;
   private JTable table;
+  private TableRowSorter<DefaultTableModel> sorter;
   private final List<String> rowProductIds = new ArrayList<>();
 
   private JButton saveButton;
@@ -60,6 +67,8 @@ public class RegisterProductFrame extends JFrame {
     priceField = new JTextField("0.00", 20);
     activeCheckBox = new JCheckBox("Active", true);
 
+    searchField = new JTextField(25);
+
     tableModel = new DefaultTableModel(
       new String[]{"SKU", "Name", "Description", "Price", "Active"}, 0) {
       @Override
@@ -76,9 +85,26 @@ public class RegisterProductFrame extends JFrame {
     table.getColumnModel().getColumn(3).setPreferredWidth(80);
     table.getColumnModel().getColumn(4).setPreferredWidth(60);
 
+    sorter = new TableRowSorter<>(tableModel);
+    table.setRowSorter(sorter);
+
     table.getSelectionModel().addListSelectionListener(e -> {
       if (!e.getValueIsAdjusting()) {
         handleTableSelection();
+      }
+    });
+
+    searchField.getDocument().addDocumentListener(new DocumentListener() {
+      public void insertUpdate(DocumentEvent e) {
+        applyFilter();
+      }
+
+      public void removeUpdate(DocumentEvent e) {
+        applyFilter();
+      }
+
+      public void changedUpdate(DocumentEvent e) {
+        applyFilter();
       }
     });
 
@@ -141,11 +167,18 @@ public class RegisterProductFrame extends JFrame {
   }
 
   private JPanel buildTablePanel() {
-    JPanel panel = new JPanel(new BorderLayout());
+    JPanel panel = new JPanel(new BorderLayout(4, 4));
     panel.setBorder(new TitledBorder("Products"));
+
+    JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+    searchPanel.add(new JLabel("Search:"));
+    searchPanel.add(searchField);
+    panel.add(searchPanel, BorderLayout.NORTH);
+
     JScrollPane scroll = new JScrollPane(table);
-    scroll.setPreferredSize(new Dimension(600, 200));
+    scroll.setPreferredSize(new Dimension(600, 180));
     panel.add(scroll, BorderLayout.CENTER);
+
     return panel;
   }
 
@@ -160,20 +193,28 @@ public class RegisterProductFrame extends JFrame {
     return panel;
   }
 
+  private void applyFilter() {
+    String text = searchField.getText().trim();
+    sorter.setRowFilter(text.isEmpty()
+      ? null
+      : RowFilter.regexFilter("(?i)" + Pattern.quote(text)));
+  }
+
   private void handleTableSelection() {
-    int row = table.getSelectedRow();
-    if (row < 0) {
+    int viewRow = table.getSelectedRow();
+    if (viewRow < 0) {
       editingProductId = null;
       updateButton.setEnabled(false);
       deleteButton.setEnabled(false);
       return;
     }
-    editingProductId = rowProductIds.get(row);
-    skuField.setText((String) tableModel.getValueAt(row, 0));
-    nameField.setText((String) tableModel.getValueAt(row, 1));
-    descriptionField.setText((String) tableModel.getValueAt(row, 2));
-    priceField.setText(tableModel.getValueAt(row, 3).toString());
-    activeCheckBox.setSelected((Boolean) tableModel.getValueAt(row, 4));
+    int modelRow = table.convertRowIndexToModel(viewRow);
+    editingProductId = rowProductIds.get(modelRow);
+    skuField.setText((String) tableModel.getValueAt(modelRow, 0));
+    nameField.setText((String) tableModel.getValueAt(modelRow, 1));
+    descriptionField.setText((String) tableModel.getValueAt(modelRow, 2));
+    priceField.setText(tableModel.getValueAt(modelRow, 3).toString());
+    activeCheckBox.setSelected((Boolean) tableModel.getValueAt(modelRow, 4));
     updateButton.setEnabled(true);
     deleteButton.setEnabled(true);
   }
@@ -288,7 +329,7 @@ public class RegisterProductFrame extends JFrame {
     setTitle("Products");
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     pack();
-    setMinimumSize(new Dimension(680, 560));
+    setMinimumSize(new Dimension(680, 580));
     setLocationRelativeTo(null);
   }
 }

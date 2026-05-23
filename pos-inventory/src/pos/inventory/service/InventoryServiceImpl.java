@@ -2,6 +2,7 @@ package pos.inventory.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import pos.inventory.exception.InventoryException;
 import pos.inventory.model.StockItem;
 import pos.inventory.repository.InventoryRepository;
@@ -23,6 +24,13 @@ public class InventoryServiceImpl implements InventoryService {
   @Override
   public List<StockItem> getAllStockItems() {
     return inventoryRepository.findAll();
+  }
+
+  @Override
+  public List<StockItem> getLowStockItems() {
+    return inventoryRepository.findAll().stream()
+      .filter(item -> item.getStock() <= item.getMinStock())
+      .collect(Collectors.toList());
   }
 
   @Override

@@ -8,6 +8,8 @@ public interface InventoryService {
 
   List<StockItem> getAllStockItems();
 
+  List<StockItem> getLowStockItems();
+
   Optional<StockItem> getStockByProductId(String productId);
 
   StockItem initializeStock(StockItem stockItem);

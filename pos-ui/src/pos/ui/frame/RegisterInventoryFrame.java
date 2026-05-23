@@ -9,6 +9,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -21,10 +22,15 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import pos.inventory.model.StockItem;
 import pos.product.model.Product;
 import pos.ui.controller.RegisterInventoryController;
@@ -37,8 +43,10 @@ public class RegisterInventoryFrame extends JFrame {
   private JSpinner stockSpinner;
   private JSpinner minStockSpinner;
 
+  private JTextField searchField;
   private DefaultTableModel tableModel;
   private JTable table;
+  private TableRowSorter<DefaultTableModel> sorter;
   private final List<String> rowProductIds = new ArrayList<>();
 
   private JButton initializeButton;
@@ -74,6 +82,8 @@ public class RegisterInventoryFrame extends JFrame {
     stockSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 99999, 1));
     minStockSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 99999, 1));
 
+    searchField = new JTextField(25);
+
     tableModel = new DefaultTableModel(
       new String[]{"Product", "SKU", "Stock", "Min Stock"}, 0) {
       @Override
@@ -89,9 +99,26 @@ public class RegisterInventoryFrame extends JFrame {
     table.getColumnModel().getColumn(2).setPreferredWidth(80);
     table.getColumnModel().getColumn(3).setPreferredWidth(80);
 
+    sorter = new TableRowSorter<>(tableModel);
+    table.setRowSorter(sorter);
+
     table.getSelectionModel().addListSelectionListener(e -> {
       if (!e.getValueIsAdjusting()) {
         handleTableSelection();
+      }
+    });
+
+    searchField.getDocument().addDocumentListener(new DocumentListener() {
+      public void insertUpdate(DocumentEvent e) {
+        applyFilter();
+      }
+
+      public void removeUpdate(DocumentEvent e) {
+        applyFilter();
+      }
+
+      public void changedUpdate(DocumentEvent e) {
+        applyFilter();
       }
     });
 
@@ -159,11 +186,18 @@ public class RegisterInventoryFrame extends JFrame {
   }
 
   private JPanel buildTablePanel() {
-    JPanel panel = new JPanel(new BorderLayout());
+    JPanel panel = new JPanel(new BorderLayout(4, 4));
     panel.setBorder(new TitledBorder("Stock Records"));
+
+    JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+    searchPanel.add(new JLabel("Search:"));
+    searchPanel.add(searchField);
+    panel.add(searchPanel, BorderLayout.NORTH);
+
     JScrollPane scroll = new JScrollPane(table);
-    scroll.setPreferredSize(new Dimension(500, 200));
+    scroll.setPreferredSize(new Dimension(500, 180));
     panel.add(scroll, BorderLayout.CENTER);
+
     return panel;
   }
 
@@ -178,9 +212,16 @@ public class RegisterInventoryFrame extends JFrame {
     return panel;
   }
 
+  private void applyFilter() {
+    String text = searchField.getText().trim();
+    sorter.setRowFilter(text.isEmpty()
+      ? null
+      : RowFilter.regexFilter("(?i)" + Pattern.quote(text)));
+  }
+
   private void handleTableSelection() {
-    int row = table.getSelectedRow();
-    if (row < 0) {
+    int viewRow = table.getSelectedRow();
+    if (viewRow < 0) {
       editingProductId = null;
       productCombo.setEnabled(true);
       initializeButton.setEnabled(true);
@@ -188,9 +229,10 @@ public class RegisterInventoryFrame extends JFrame {
       deleteButton.setEnabled(false);
       return;
     }
-    editingProductId = rowProductIds.get(row);
-    stockSpinner.setValue((Integer) tableModel.getValueAt(row, 2));
-    minStockSpinner.setValue((Integer) tableModel.getValueAt(row, 3));
+    int modelRow = table.convertRowIndexToModel(viewRow);
+    editingProductId = rowProductIds.get(modelRow);
+    stockSpinner.setValue((Integer) tableModel.getValueAt(modelRow, 2));
+    minStockSpinner.setValue((Integer) tableModel.getValueAt(modelRow, 3));
 
     controller.findProductById(editingProductId).ifPresent(p -> {
       for (int i = 0; i < productCombo.getItemCount(); i++) {
@@ -250,7 +292,9 @@ public class RegisterInventoryFrame extends JFrame {
     if (editingProductId == null) {
       return;
     }
-    String productName = (String) tableModel.getValueAt(table.getSelectedRow(), 0);
+    int viewRow = table.getSelectedRow();
+    String productName = (String) tableModel.getValueAt(
+      table.convertRowIndexToModel(viewRow), 0);
     int confirm = JOptionPane.showConfirmDialog(this,
       "Delete stock record for '" + productName + "'?",
       "Confirm Delete", JOptionPane.YES_NO_OPTION);
@@ -301,7 +345,7 @@ public class RegisterInventoryFrame extends JFrame {
     setTitle("Inventory");
     setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     pack();
-    setMinimumSize(new Dimension(580, 520));
+    setMinimumSize(new Dimension(580, 540));
     setLocationRelativeTo(null);
   }
 }

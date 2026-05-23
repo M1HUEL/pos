@@ -30,6 +30,10 @@ public class RegisterInventoryController {
     return inventoryService.getAllStockItems();
   }
 
+  public List<StockItem> getLowStockItems() {
+    return inventoryService.getLowStockItems();
+  }
+
   public StockItem initializeStock(String productId, int stock, int minStock) {
     StockItem stockItem = new StockItem();
     stockItem.setProductId(productId);

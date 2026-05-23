@@ -26,9 +26,8 @@ import pos.sale.validation.SaleValidator;
 import pos.ui.controller.RegisterInventoryController;
 import pos.ui.controller.RegisterProductController;
 import pos.ui.controller.RegisterSaleController;
-import pos.ui.frame.RegisterInventoryFrame;
-import pos.ui.frame.RegisterProductFrame;
-import pos.ui.frame.RegisterSaleFrame;
+import pos.ui.controller.SalesHistoryController;
+import pos.ui.frame.MainMenuFrame;
 
 public class App {
 
@@ -64,16 +63,18 @@ public class App {
     productService.addListener(new InventoryEventListener(inventoryRepository));
 
     RegisterSaleController registerSaleController = new RegisterSaleController(saleService, productService);
-
     RegisterProductController registerProductController = new RegisterProductController(productService);
-
     RegisterInventoryController registerInventoryController = new RegisterInventoryController(inventoryService, productService);
+    SalesHistoryController salesHistoryController = new SalesHistoryController(saleService);
 
-    SwingUtilities.invokeLater(() -> {
-      new RegisterProductFrame(registerProductController).setVisible(true);
-      new RegisterInventoryFrame(registerInventoryController).setVisible(true);
-      new RegisterSaleFrame(registerSaleController).setVisible(true);
-    });
+    SwingUtilities.invokeLater(()
+      -> new MainMenuFrame(
+        registerProductController,
+        registerInventoryController,
+        registerSaleController,
+        salesHistoryController
+      ).setVisible(true)
+    );
   }
 
   private static MongoClient connectToDatabase() {
