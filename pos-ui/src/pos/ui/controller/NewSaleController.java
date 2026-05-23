@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import pos.product.model.Product;
 import pos.product.service.ProductService;
 import pos.sale.model.PaymentMethod;
@@ -25,7 +26,7 @@ public class NewSaleController {
   }
 
   public List<Product> getAllProducts() {
-    return productService.getAllProducts();
+    return productService.getAllProducts().stream().filter(p -> Boolean.TRUE.equals(p.getActive())).collect(Collectors.toList());
   }
 
   public SaleItem buildItem(Product product, int quantity, BigDecimal discountAmount) {
