@@ -28,9 +28,7 @@ public class InventoryServiceImpl implements InventoryService {
 
   @Override
   public List<StockItem> getLowStockItems() {
-    return inventoryRepository.findAll().stream()
-      .filter(item -> item.getStock() <= item.getMinStock())
-      .collect(Collectors.toList());
+    return inventoryRepository.findLowStock();
   }
 
   @Override

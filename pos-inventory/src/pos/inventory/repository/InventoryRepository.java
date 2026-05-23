@@ -8,6 +8,8 @@ public interface InventoryRepository {
 
   List<StockItem> findAll();
 
+  List<StockItem> findLowStock();
+
   Optional<StockItem> findById(String id);
 
   Optional<StockItem> findByProductId(String productId);
