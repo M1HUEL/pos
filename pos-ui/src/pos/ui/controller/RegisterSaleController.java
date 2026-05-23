@@ -3,11 +3,12 @@ package pos.ui.controller;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import pos.product.model.Product;
 import pos.product.service.ProductService;
+import pos.sale.model.PaymentMethod;
 import pos.sale.model.Sale;
 import pos.sale.model.SaleItem;
 import pos.sale.service.SaleService;
@@ -25,11 +26,6 @@ public class RegisterSaleController {
 
   public List<Product> getAllProducts() {
     return productService.getAllProducts();
-  }
-
-  public Product lookupProductBySku(String sku) {
-    return productService.getProductBySku(sku)
-      .orElseThrow(() -> new IllegalArgumentException("Product not found with SKU: " + sku));
   }
 
   public SaleItem buildItem(Product product, int quantity, BigDecimal discountAmount) {
@@ -105,8 +101,7 @@ public class RegisterSaleController {
       .setScale(2, RoundingMode.HALF_UP);
   }
 
-  public Sale createSale(String saleNumber, String paymentMethod,
-    BigDecimal saleDiscount, BigDecimal taxAmount) {
+  public Sale createSale(PaymentMethod paymentMethod, BigDecimal saleDiscount, BigDecimal taxAmount) {
     if (currentItems.isEmpty()) {
       throw new IllegalStateException("Cannot create a sale with no items");
     }
@@ -117,7 +112,6 @@ public class RegisterSaleController {
       taxAmount = BigDecimal.ZERO;
     }
     Sale sale = new Sale();
-    sale.setSaleNumber(saleNumber);
     sale.setPaymentMethod(paymentMethod);
     sale.setItems(new ArrayList<>(currentItems));
     sale.setDiscountAmount(saleDiscount);
@@ -134,6 +128,6 @@ public class RegisterSaleController {
   }
 
   public String generateSaleNumber() {
-    return "SALE-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+    return UUID.randomUUID().toString();
   }
 }

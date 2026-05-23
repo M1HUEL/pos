@@ -32,6 +32,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import pos.product.model.Product;
+import pos.sale.model.PaymentMethod;
 import pos.sale.model.Sale;
 import pos.sale.model.SaleItem;
 import pos.ui.controller.RegisterSaleController;
@@ -41,7 +42,7 @@ public class RegisterSaleFrame extends JFrame {
   private final RegisterSaleController controller;
 
   private JTextField saleNumberField;
-  private JComboBox<String> paymentMethodCombo;
+  private JComboBox<PaymentMethod> paymentMethodCombo;
 
   private JComboBox<Product> productCombo;
   private JSpinner quantitySpinner;
@@ -63,8 +64,10 @@ public class RegisterSaleFrame extends JFrame {
   }
 
   private void initComponents() {
-    saleNumberField = new JTextField(controller.generateSaleNumber(), 20);
-    paymentMethodCombo = new JComboBox<>(new String[]{"Cash", "Card", "Transfer"});
+    saleNumberField = new JTextField(controller.generateSaleNumber(), 30);
+    saleNumberField.setEditable(false);
+
+    paymentMethodCombo = new JComboBox<>(PaymentMethod.values());
 
     productCombo = new JComboBox<>();
     productCombo.setRenderer(new DefaultListCellRenderer() {
@@ -274,12 +277,7 @@ public class RegisterSaleFrame extends JFrame {
       showError("Cannot complete a sale with no items.");
       return;
     }
-    String saleNumber = saleNumberField.getText().trim();
-    if (saleNumber.isEmpty()) {
-      showError("Sale number is required.");
-      return;
-    }
-    String paymentMethod = (String) paymentMethodCombo.getSelectedItem();
+    PaymentMethod paymentMethod = (PaymentMethod) paymentMethodCombo.getSelectedItem();
     BigDecimal saleDiscount;
     BigDecimal taxAmount;
     try {
@@ -290,18 +288,17 @@ public class RegisterSaleFrame extends JFrame {
       return;
     }
     int confirm = JOptionPane.showConfirmDialog(this,
-      "Complete sale " + saleNumber + " for " + totalLabel.getText() + "?",
+      "Complete sale for " + totalLabel.getText() + " via " + paymentMethod.getDisplayName() + "?",
       "Confirm Sale", JOptionPane.YES_NO_OPTION);
     if (confirm != JOptionPane.YES_OPTION) {
       return;
     }
     try {
-      Sale sale = controller.createSale(saleNumber, paymentMethod, saleDiscount, taxAmount);
+      Sale sale = controller.createSale(paymentMethod, saleDiscount, taxAmount);
       JOptionPane.showMessageDialog(this,
         "Sale " + sale.getSaleNumber() + " completed successfully!",
         "Sale Completed", JOptionPane.INFORMATION_MESSAGE);
       handleClear();
-      saleNumberField.setText(controller.generateSaleNumber());
     } catch (Exception e) {
       showError("Failed to complete sale: " + e.getMessage());
     }
@@ -312,6 +309,7 @@ public class RegisterSaleFrame extends JFrame {
     tableModel.setRowCount(0);
     saleDiscountField.setText("0.00");
     taxAmountField.setText("0.00");
+    saleNumberField.setText(controller.generateSaleNumber());
     updateTotals();
   }
 

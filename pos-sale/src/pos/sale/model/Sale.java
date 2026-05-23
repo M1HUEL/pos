@@ -13,14 +13,14 @@ public class Sale {
   private BigDecimal totalAmount;
   private BigDecimal taxAmount;
   private BigDecimal discountAmount;
-  private String paymentMethod;
+  private PaymentMethod paymentMethod;
   private SaleStatus status;
 
   public Sale() {
     // ...
   }
 
-  public Sale(String id, String saleNumber, LocalDateTime dateTime, List<SaleItem> items, BigDecimal totalAmount, BigDecimal taxAmount, BigDecimal discountAmount, String paymentMethod, SaleStatus status) {
+  public Sale(String id, String saleNumber, LocalDateTime dateTime, List<SaleItem> items, BigDecimal totalAmount, BigDecimal taxAmount, BigDecimal discountAmount, PaymentMethod paymentMethod, SaleStatus status) {
     this.id = id;
     this.saleNumber = saleNumber;
     this.dateTime = dateTime;
@@ -60,7 +60,7 @@ public class Sale {
     return discountAmount;
   }
 
-  public String getPaymentMethod() {
+  public PaymentMethod getPaymentMethod() {
     return paymentMethod;
   }
 
@@ -96,7 +96,7 @@ public class Sale {
     this.discountAmount = discountAmount;
   }
 
-  public void setPaymentMethod(String paymentMethod) {
+  public void setPaymentMethod(PaymentMethod paymentMethod) {
     this.paymentMethod = paymentMethod;
   }
 

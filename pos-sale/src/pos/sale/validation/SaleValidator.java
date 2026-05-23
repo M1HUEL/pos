@@ -1,6 +1,7 @@
 package pos.sale.validation;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 import org.bson.types.ObjectId;
 import pos.sale.exception.SaleException;
 import pos.sale.model.Sale;
@@ -21,6 +22,11 @@ public class SaleValidator {
     if (saleNumber == null || saleNumber.trim().isEmpty()) {
       throw new SaleException("Sale number cannot be null or empty");
     }
+    try {
+      UUID.fromString(saleNumber);
+    } catch (IllegalArgumentException e) {
+      throw new SaleException("Sale number has an invalid UUID format");
+    }
   }
 
   public void validate(Sale sale) {
@@ -33,7 +39,7 @@ public class SaleValidator {
     for (SaleItem item : sale.getItems()) {
       validateItem(item);
     }
-    if (sale.getPaymentMethod() == null || sale.getPaymentMethod().trim().isEmpty()) {
+    if (sale.getPaymentMethod() == null) {
       throw new SaleException("Payment method is required");
     }
     if (sale.getTotalAmount() == null || sale.getTotalAmount().compareTo(BigDecimal.ZERO) < 0) {
@@ -46,8 +52,8 @@ public class SaleValidator {
     if (item == null) {
       throw new SaleException("Sale item cannot be null");
     }
-    if (item.getProductId() == null || item.getProductId().trim().isEmpty() || !ObjectId.isValid(item.getProductId())) {
-      throw new SaleException("Sale item must link to a valid product ID format");
+    if (item.getProductId() == null || item.getProductId().trim().isEmpty()) {
+      throw new SaleException("Sale item must link to a valid product ID");
     }
     if (item.getQuantity() == null || item.getQuantity() <= 0) {
       throw new SaleException("Sale item quantity must be greater than zero");
@@ -64,9 +70,10 @@ public class SaleValidator {
     BigDecimal expectedSubTotal = item.getUnitPrice()
       .multiply(BigDecimal.valueOf(item.getQuantity()))
       .subtract(item.getDiscountAmount());
-
     if (item.getSubTotal().compareTo(expectedSubTotal) != 0) {
-      throw new SaleException("Sale item subTotal does not match unitPrice * quantity - discountAmount for product ID: " + item.getProductId());
+      throw new SaleException(
+        "Sale item subTotal does not match unitPrice * quantity - discountAmount for product ID: "
+        + item.getProductId());
     }
   }
 
@@ -74,12 +81,9 @@ public class SaleValidator {
     BigDecimal itemsTotal = sale.getItems().stream()
       .map(SaleItem::getSubTotal)
       .reduce(BigDecimal.ZERO, BigDecimal::add);
-
     BigDecimal saleDiscount = sale.getDiscountAmount() != null ? sale.getDiscountAmount() : BigDecimal.ZERO;
     BigDecimal saleTax = sale.getTaxAmount() != null ? sale.getTaxAmount() : BigDecimal.ZERO;
-
     BigDecimal expectedTotal = itemsTotal.subtract(saleDiscount).add(saleTax);
-
     if (sale.getTotalAmount().compareTo(expectedTotal) != 0) {
       throw new SaleException(
         "Sale totalAmount does not match sum of item subtotals minus discount plus tax");
