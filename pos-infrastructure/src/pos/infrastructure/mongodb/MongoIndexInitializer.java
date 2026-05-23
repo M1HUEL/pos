@@ -16,6 +16,7 @@ public class MongoIndexInitializer {
     createProductIndexes();
     createSaleIndexes();
     createStockIndexes();
+    createSupplierIndexes();
   }
 
   private void createProductIndexes() {
@@ -31,5 +32,10 @@ public class MongoIndexInitializer {
   private void createStockIndexes() {
     database.getCollection("stock_item")
       .createIndex(Indexes.ascending("productId"), new IndexOptions().unique(true));
+  }
+
+  private void createSupplierIndexes() {
+    database.getCollection("supplier")
+      .createIndex(Indexes.ascending("name"), new IndexOptions().unique(true));
   }
 }
