@@ -30,19 +30,24 @@ public class ProductController {
 
   public Product createProduct(String sku, String name, String description,
     BigDecimal price, boolean active) {
+
     Product product = new Product();
     product.setSku(sku);
     product.setName(name);
     product.setDescription(description);
     product.setPrice(price);
     product.setActive(active);
+
     Product created = productService.createProduct(product);
+
     notifyProductsChanged();
+
     return created;
   }
 
   public Product updateProduct(String id, String sku, String name, String description,
     BigDecimal price, boolean active) {
+
     Product product = new Product();
     product.setId(id);
     product.setSku(sku);
@@ -50,13 +55,17 @@ public class ProductController {
     product.setDescription(description);
     product.setPrice(price);
     product.setActive(active);
+
     Product updated = productService.updateProduct(product);
+
     notifyProductsChanged();
+
     return updated;
   }
 
   public void deleteProduct(String id) {
     productService.deleteProduct(id);
+
     notifyProductsChanged();
   }
 }

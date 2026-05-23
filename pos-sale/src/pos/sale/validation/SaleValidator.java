@@ -67,26 +67,22 @@ public class SaleValidator {
     if (item.getSubTotal() == null || item.getSubTotal().compareTo(BigDecimal.ZERO) < 0) {
       throw new SaleException("Sale item subtotal cannot be null or negative");
     }
-    BigDecimal expectedSubTotal = item.getUnitPrice()
-      .multiply(BigDecimal.valueOf(item.getQuantity()))
-      .subtract(item.getDiscountAmount());
+
+    BigDecimal expectedSubTotal = item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())).subtract(item.getDiscountAmount());
+
     if (item.getSubTotal().compareTo(expectedSubTotal) != 0) {
-      throw new SaleException(
-        "Sale item subTotal does not match unitPrice * quantity - discountAmount for product ID: "
-        + item.getProductId());
+      throw new SaleException("Sale item subTotal does not match unitPrice * quantity - discountAmount for product ID: " + item.getProductId());
     }
   }
 
   private void validateTotalAmount(Sale sale) {
-    BigDecimal itemsTotal = sale.getItems().stream()
-      .map(SaleItem::getSubTotal)
-      .reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal itemsTotal = sale.getItems().stream().map(SaleItem::getSubTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal saleDiscount = sale.getDiscountAmount() != null ? sale.getDiscountAmount() : BigDecimal.ZERO;
     BigDecimal saleTax = sale.getTaxAmount() != null ? sale.getTaxAmount() : BigDecimal.ZERO;
     BigDecimal expectedTotal = itemsTotal.subtract(saleDiscount).add(saleTax);
+
     if (sale.getTotalAmount().compareTo(expectedTotal) != 0) {
-      throw new SaleException(
-        "Sale totalAmount does not match sum of item subtotals minus discount plus tax");
+      throw new SaleException("Sale totalAmount does not match sum of item subtotals minus discount plus tax");
     }
   }
 }

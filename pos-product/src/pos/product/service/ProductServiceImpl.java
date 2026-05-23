@@ -32,12 +32,14 @@ public class ProductServiceImpl implements ProductService {
   @Override
   public Optional<Product> getProductById(String id) {
     productValidator.validateId(id);
+
     return productRepository.findById(id);
   }
 
   @Override
   public Optional<Product> getProductBySku(String sku) {
     productValidator.validateSku(sku);
+
     return productRepository.findBySku(sku);
   }
 

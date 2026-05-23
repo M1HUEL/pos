@@ -23,9 +23,11 @@ public class ProductMongoRepository implements ProductRepository {
   @Override
   public List<Product> findAll() {
     List<Product> products = new ArrayList<>();
+
     for (Document doc : collection.find()) {
       products.add(ProductMapper.toEntity(doc));
     }
+
     return products;
   }
 

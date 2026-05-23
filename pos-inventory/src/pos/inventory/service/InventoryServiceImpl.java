@@ -2,7 +2,6 @@ package pos.inventory.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import pos.inventory.exception.InventoryException;
 import pos.inventory.model.StockItem;
 import pos.inventory.repository.InventoryRepository;
@@ -53,17 +52,19 @@ public class InventoryServiceImpl implements InventoryService {
   @Override
   public StockItem updateStock(String productId, Integer stock, Integer minStock) {
     inventoryValidator.validateProductId(productId);
+
     if (stock == null || stock < 0) {
       throw new InventoryException("Stock quantity cannot be null or negative");
     }
+
     if (minStock == null || minStock < 0) {
       throw new InventoryException("Minimum stock cannot be null or negative");
     }
-    StockItem stockItem = inventoryRepository.findByProductId(productId)
-      .orElseThrow(() -> new InventoryException(
-      "No stock record found for product ID: " + productId));
+
+    StockItem stockItem = inventoryRepository.findByProductId(productId).orElseThrow(() -> new InventoryException("No stock record found for product ID: " + productId));
     stockItem.setStock(stock);
     stockItem.setMinStock(minStock);
+
     return inventoryRepository.update(stockItem);
   }
 
@@ -94,15 +95,15 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     StockItem stockItem = inventoryRepository.findByProductId(productId).orElseThrow(() -> new InventoryException("No stock record found for product ID: " + productId));
-
     stockItem.setStock(stockItem.getStock() + quantity);
+
     inventoryRepository.update(stockItem);
   }
 
   @Override
   public void deleteStockByProductId(String productId) {
     inventoryValidator.validateProductId(productId);
-    inventoryRepository.findByProductId(productId)
-      .ifPresent(stockItem -> inventoryRepository.deleteById(stockItem.getId()));
+
+    inventoryRepository.findByProductId(productId).ifPresent(stockItem -> inventoryRepository.deleteById(stockItem.getId()));
   }
 }

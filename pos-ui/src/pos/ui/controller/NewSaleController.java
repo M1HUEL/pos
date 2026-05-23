@@ -39,13 +39,13 @@ public class NewSaleController {
     if (discountAmount.compareTo(BigDecimal.ZERO) < 0) {
       throw new IllegalArgumentException("Item discount cannot be negative");
     }
-    BigDecimal subTotal = product.getPrice()
-      .multiply(BigDecimal.valueOf(quantity))
-      .subtract(discountAmount)
-      .setScale(2, RoundingMode.HALF_UP);
+
+    BigDecimal subTotal = product.getPrice().multiply(BigDecimal.valueOf(quantity)).subtract(discountAmount).setScale(2, RoundingMode.HALF_UP);
+
     if (subTotal.compareTo(BigDecimal.ZERO) < 0) {
       throw new IllegalArgumentException("Item discount cannot exceed item total");
     }
+
     SaleItem item = new SaleItem();
     item.setProductId(product.getId());
     item.setProductName(product.getName());
@@ -53,6 +53,7 @@ public class NewSaleController {
     item.setUnitPrice(product.getPrice());
     item.setDiscountAmount(discountAmount);
     item.setSubTotal(subTotal);
+
     return item;
   }
 
@@ -60,14 +61,14 @@ public class NewSaleController {
     for (SaleItem existing : currentItems) {
       if (existing.getProductId().equals(newItem.getProductId())) {
         int mergedQty = existing.getQuantity() + newItem.getQuantity();
+
         BigDecimal mergedDiscount = existing.getDiscountAmount().add(newItem.getDiscountAmount());
-        BigDecimal mergedSubTotal = existing.getUnitPrice()
-          .multiply(BigDecimal.valueOf(mergedQty))
-          .subtract(mergedDiscount)
-          .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal mergedSubTotal = existing.getUnitPrice().multiply(BigDecimal.valueOf(mergedQty)).subtract(mergedDiscount).setScale(2, RoundingMode.HALF_UP);
+
         existing.setQuantity(mergedQty);
         existing.setDiscountAmount(mergedDiscount);
         existing.setSubTotal(mergedSubTotal);
+
         return;
       }
     }
@@ -83,35 +84,34 @@ public class NewSaleController {
   }
 
   public BigDecimal calculateItemsTotal() {
-    return currentItems.stream()
-      .map(SaleItem::getSubTotal)
-      .reduce(BigDecimal.ZERO, BigDecimal::add)
-      .setScale(2, RoundingMode.HALF_UP);
+    return currentItems.stream().map(SaleItem::getSubTotal).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
   }
 
   public BigDecimal calculateTotal(BigDecimal saleDiscount, BigDecimal taxAmount) {
     if (saleDiscount == null) {
       saleDiscount = BigDecimal.ZERO;
     }
+
     if (taxAmount == null) {
       taxAmount = BigDecimal.ZERO;
     }
-    return calculateItemsTotal()
-      .subtract(saleDiscount)
-      .add(taxAmount)
-      .setScale(2, RoundingMode.HALF_UP);
+
+    return calculateItemsTotal().subtract(saleDiscount).add(taxAmount).setScale(2, RoundingMode.HALF_UP);
   }
 
   public Sale createSale(PaymentMethod paymentMethod, BigDecimal saleDiscount, BigDecimal taxAmount) {
     if (currentItems.isEmpty()) {
       throw new IllegalStateException("Cannot create a sale with no items");
     }
+
     if (saleDiscount == null) {
       saleDiscount = BigDecimal.ZERO;
     }
+
     if (taxAmount == null) {
       taxAmount = BigDecimal.ZERO;
     }
+
     Sale sale = new Sale();
     sale.setPaymentMethod(paymentMethod);
     sale.setItems(new ArrayList<>(currentItems));
@@ -120,7 +120,9 @@ public class NewSaleController {
     sale.setTotalAmount(calculateTotal(saleDiscount, taxAmount));
     sale.setDateTime(LocalDateTime.now());
     Sale created = saleService.createSale(sale);
+
     currentItems.clear();
+
     return created;
   }
 

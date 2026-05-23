@@ -23,20 +23,24 @@ public class InventoryMongoRepository implements InventoryRepository {
   @Override
   public List<StockItem> findAll() {
     List<StockItem> stockItems = new ArrayList<>();
+
     for (Document doc : collection.find()) {
       stockItems.add(InventoryMapper.toEntity(doc));
     }
+
     return stockItems;
   }
 
   @Override
   public List<StockItem> findLowStock() {
     List<StockItem> stockItems = new ArrayList<>();
-    Document filter = new Document("$expr",
-      new Document("$lte", java.util.Arrays.asList("$stock", "$minStock")));
+
+    Document filter = new Document("$expr", new Document("$lte", java.util.Arrays.asList("$stock", "$minStock")));
+
     for (Document doc : collection.find(filter)) {
       stockItems.add(InventoryMapper.toEntity(doc));
     }
+
     return stockItems;
   }
 

@@ -23,9 +23,11 @@ public class SaleMongoRepository implements SaleRepository {
   @Override
   public List<Sale> findAll() {
     List<Sale> sales = new ArrayList<>();
+
     for (Document doc : collection.find()) {
       sales.add(SaleMapper.toEntity(doc));
     }
+
     return sales;
   }
 
@@ -34,7 +36,9 @@ public class SaleMongoRepository implements SaleRepository {
     if (id == null || !ObjectId.isValid(id)) {
       return Optional.empty();
     }
+
     Document doc = collection.find(Filters.eq("_id", new ObjectId(id))).first();
+
     return Optional.ofNullable(doc).map(SaleMapper::toEntity);
   }
 
@@ -43,7 +47,9 @@ public class SaleMongoRepository implements SaleRepository {
     if (saleNumber == null) {
       return Optional.empty();
     }
+
     Document doc = collection.find(Filters.eq("saleNumber", saleNumber)).first();
+
     return Optional.ofNullable(doc).map(SaleMapper::toEntity);
   }
 
@@ -52,8 +58,11 @@ public class SaleMongoRepository implements SaleRepository {
     if (sale.getId() == null || sale.getId().trim().isEmpty()) {
       sale.setId(new ObjectId().toHexString());
     }
+
     Document doc = SaleMapper.toDocument(sale);
+
     collection.insertOne(doc);
+
     return sale;
   }
 
@@ -62,8 +71,11 @@ public class SaleMongoRepository implements SaleRepository {
     if (sale.getId() == null || !ObjectId.isValid(sale.getId())) {
       throw new IllegalArgumentException("Cannot update a Sale without a valid hex ObjectId");
     }
+
     Document doc = SaleMapper.toDocument(sale);
+
     collection.replaceOne(Filters.eq("_id", new ObjectId(sale.getId())), doc);
+
     return sale;
   }
 
@@ -72,6 +84,7 @@ public class SaleMongoRepository implements SaleRepository {
     if (id == null || !ObjectId.isValid(id)) {
       throw new IllegalArgumentException("Cannot delete: Invalid hex ObjectId format");
     }
+
     collection.deleteOne(Filters.eq("_id", new ObjectId(id)));
   }
 }
