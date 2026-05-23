@@ -23,7 +23,11 @@ import pos.sale.repository.SaleRepository;
 import pos.sale.service.SaleService;
 import pos.sale.service.SaleServiceImpl;
 import pos.sale.validation.SaleValidator;
+import pos.ui.controller.RegisterInventoryController;
+import pos.ui.controller.RegisterProductController;
 import pos.ui.controller.RegisterSaleController;
+import pos.ui.frame.RegisterInventoryFrame;
+import pos.ui.frame.RegisterProductFrame;
 import pos.ui.frame.RegisterSaleFrame;
 
 public class App {
@@ -61,10 +65,14 @@ public class App {
 
     RegisterSaleController registerSaleController = new RegisterSaleController(saleService, productService);
 
-    SwingUtilities.invokeLater(() -> {
-      RegisterSaleFrame frame = new RegisterSaleFrame(registerSaleController);
+    RegisterProductController registerProductController = new RegisterProductController(productService);
 
-      frame.setVisible(true);
+    RegisterInventoryController registerInventoryController = new RegisterInventoryController(inventoryService, productService);
+
+    SwingUtilities.invokeLater(() -> {
+      new RegisterProductFrame(registerProductController).setVisible(true);
+      new RegisterInventoryFrame(registerInventoryController).setVisible(true);
+      new RegisterSaleFrame(registerSaleController).setVisible(true);
     });
   }
 
