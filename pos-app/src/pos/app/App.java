@@ -32,18 +32,18 @@ import pos.ui.frame.MainFrame;
 
 public class App {
 
-  private static final String MONGO_URI = "mongodb://localhost:27017";
-  private static final String DB_NAME = "pos_db";
-
   public static void main(String[] args) {
     applyLookAndFeel();
 
-    MongoClient mongoClient = connectToDatabase();
+    AppConfig config = new AppConfig();
+
+    MongoClient mongoClient = connectToDatabase(config.getMongoUri());
+
     if (mongoClient == null) {
       return;
     }
 
-    MongoDatabase database = mongoClient.getDatabase(DB_NAME);
+    MongoDatabase database = mongoClient.getDatabase(config.getMongoDatabase());
 
     new MongoIndexInitializer(database).initialize();
 
@@ -80,16 +80,15 @@ public class App {
     );
   }
 
-  private static MongoClient connectToDatabase() {
+  private static MongoClient connectToDatabase(String mongoUri) {
     try {
-      MongoClient client = MongoClients.create(MONGO_URI);
-
-      client.getDatabase(DB_NAME).runCommand(new Document("ping", 1));
-
+      MongoClient client = MongoClients.create(mongoUri);
+      client.getDatabase("admin").runCommand(new Document("ping", 1));
       return client;
     } catch (Exception e) {
-      JOptionPane.showMessageDialog(null, "Could not connect to the database.\n" + e.getMessage(), "Connection Error", JOptionPane.ERROR_MESSAGE);
-
+      JOptionPane.showMessageDialog(null,
+        "Could not connect to the database.\n" + e.getMessage(),
+        "Connection Error", JOptionPane.ERROR_MESSAGE);
       return null;
     }
   }
