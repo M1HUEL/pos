@@ -13,7 +13,6 @@ import pos.infrastructure.mongodb.repository.InventoryMongoRepository;
 import pos.infrastructure.mongodb.repository.ProductMongoRepository;
 import pos.infrastructure.mongodb.repository.SaleMongoRepository;
 import pos.infrastructure.mongodb.repository.SupplierMongoRepository;
-import pos.inventory.listener.InventoryEventListener;
 import pos.inventory.repository.InventoryRepository;
 import pos.inventory.service.InventoryService;
 import pos.inventory.service.InventoryServiceImpl;
