@@ -28,6 +28,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -36,8 +37,9 @@ import pos.sale.model.PaymentMethod;
 import pos.sale.model.Sale;
 import pos.sale.model.SaleItem;
 import pos.ui.controller.NewSaleController;
+import pos.ui.listener.ProductChangeListener;
 
-public class NewSaleFrame extends JFrame {
+public class NewSaleFrame extends JFrame implements ProductChangeListener {
 
   private final NewSaleController controller;
 
@@ -345,9 +347,14 @@ public class NewSaleFrame extends JFrame {
 
   private void configureFrame() {
     setTitle("Register Sale");
-    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     pack();
     setMinimumSize(new Dimension(780, 620));
     setLocationRelativeTo(null);
+  }
+
+  @Override
+  public void onProductsChanged() {
+    SwingUtilities.invokeLater(this::loadProducts);
   }
 }

@@ -19,20 +19,28 @@ import pos.ui.controller.SaleHistoryController;
 
 public class MainFrame extends JFrame {
 
-  private final ProductController productController;
   private final InventoryController inventoryController;
-  private final NewSaleController saleController;
-  private final SaleHistoryController salesHistoryController;
+
+  private final ProductFrame productFrame;
+  private final InventoryFrame inventoryFrame;
+  private final NewSaleFrame newSaleFrame;
+  private final SaleHistoryFrame saleHistoryFrame;
 
   public MainFrame(
     ProductController productController,
     InventoryController inventoryController,
-    NewSaleController saleController,
-    SaleHistoryController salesHistoryController) {
-    this.productController = productController;
+    NewSaleController newSaleController,
+    SaleHistoryController saleHistoryController) {
     this.inventoryController = inventoryController;
-    this.saleController = saleController;
-    this.salesHistoryController = salesHistoryController;
+
+    productFrame = new ProductFrame(productController);
+    inventoryFrame = new InventoryFrame(inventoryController);
+    newSaleFrame = new NewSaleFrame(newSaleController);
+    saleHistoryFrame = new SaleHistoryFrame(saleHistoryController);
+
+    productController.addChangeListener(inventoryFrame);
+    productController.addChangeListener(newSaleFrame);
+
     initComponents();
     configureFrame();
   }
@@ -48,27 +56,28 @@ public class MainFrame extends JFrame {
 
     JButton productsButton = new JButton("Products");
     JButton inventoryButton = new JButton("Inventory");
-    JButton registerSaleButton = new JButton("Register Sale");
-    JButton viewSalesButton = new JButton("View Sales");
+    JButton newSaleButton = new JButton("New Sale");
+    JButton saleHistoryButton = new JButton("Sale History");
     JButton lowStockButton = new JButton("Low Stock Alert");
 
-    productsButton.addActionListener(e
-      -> new ProductFrame(productController).setVisible(true));
-    inventoryButton.addActionListener(e
-      -> new InventoryFrame(inventoryController).setVisible(true));
-    registerSaleButton.addActionListener(e
-      -> new NewSaleFrame(saleController).setVisible(true));
-    viewSalesButton.addActionListener(e
-      -> new SaleHistoryFrame(salesHistoryController).setVisible(true));
+    productsButton.addActionListener(e -> showFrame(productFrame));
+    inventoryButton.addActionListener(e -> showFrame(inventoryFrame));
+    newSaleButton.addActionListener(e -> showFrame(newSaleFrame));
+    saleHistoryButton.addActionListener(e -> showFrame(saleHistoryFrame));
     lowStockButton.addActionListener(e -> handleLowStockAlert());
 
     buttonPanel.add(productsButton);
     buttonPanel.add(inventoryButton);
-    buttonPanel.add(registerSaleButton);
-    buttonPanel.add(viewSalesButton);
+    buttonPanel.add(newSaleButton);
+    buttonPanel.add(saleHistoryButton);
     buttonPanel.add(lowStockButton);
 
     add(buttonPanel, BorderLayout.CENTER);
+  }
+
+  private void showFrame(JFrame frame) {
+    frame.setVisible(true);
+    frame.toFront();
   }
 
   private void handleLowStockAlert() {

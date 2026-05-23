@@ -26,6 +26,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -34,8 +35,9 @@ import javax.swing.table.TableRowSorter;
 import pos.inventory.model.StockItem;
 import pos.product.model.Product;
 import pos.ui.controller.InventoryController;
+import pos.ui.listener.ProductChangeListener;
 
-public class InventoryFrame extends JFrame {
+public class InventoryFrame extends JFrame implements ProductChangeListener {
 
   private final InventoryController controller;
 
@@ -343,9 +345,14 @@ public class InventoryFrame extends JFrame {
 
   private void configureFrame() {
     setTitle("Inventory");
-    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     pack();
     setMinimumSize(new Dimension(580, 540));
     setLocationRelativeTo(null);
+  }
+
+  @Override
+  public void onProductsChanged() {
+    SwingUtilities.invokeLater(this::loadProductCombo);
   }
 }
