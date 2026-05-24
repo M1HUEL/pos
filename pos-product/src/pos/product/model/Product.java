@@ -9,18 +9,20 @@ public class Product {
   private String name;
   private String description;
   private BigDecimal price;
+  private String supplierId;
   private Boolean active;
 
   public Product() {
     // ...
   }
 
-  public Product(String id, String sku, String name, String description, BigDecimal price, Boolean active) {
+  public Product(String id, String sku, String name, String description, BigDecimal price, String supplierId, Boolean active) {
     this.id = id;
     this.sku = sku;
     this.name = name;
     this.description = description;
     this.price = price;
+    this.supplierId = supplierId;
     this.active = active;
   }
 
@@ -42,6 +44,10 @@ public class Product {
 
   public BigDecimal getPrice() {
     return price;
+  }
+
+  public String getSupplierId() {
+    return supplierId;
   }
 
   public Boolean getActive() {
@@ -66,6 +72,10 @@ public class Product {
 
   public void setPrice(BigDecimal price) {
     this.price = price;
+  }
+
+  public void setSupplierId(String supplierId) {
+    this.supplierId = supplierId;
   }
 
   public void setActive(Boolean active) {

@@ -11,8 +11,10 @@ import org.bson.Document;
 import pos.infrastructure.mongodb.MongoIndexInitializer;
 import pos.infrastructure.mongodb.repository.InventoryMongoRepository;
 import pos.infrastructure.mongodb.repository.ProductMongoRepository;
+import pos.infrastructure.mongodb.repository.PurchaseOrderMongoRepository;
 import pos.infrastructure.mongodb.repository.SaleMongoRepository;
 import pos.infrastructure.mongodb.repository.SupplierMongoRepository;
+import pos.inventory.listener.InventoryEventListener;
 import pos.inventory.repository.InventoryRepository;
 import pos.inventory.service.InventoryService;
 import pos.inventory.service.InventoryServiceImpl;
@@ -20,6 +22,10 @@ import pos.inventory.validation.InventoryValidator;
 import pos.product.repository.ProductRepository;
 import pos.product.service.ProductServiceImpl;
 import pos.product.validation.ProductValidator;
+import pos.purchase.repository.PurchaseOrderRepository;
+import pos.purchase.service.PurchaseOrderService;
+import pos.purchase.service.PurchaseOrderServiceImpl;
+import pos.purchase.validation.PurchaseOrderValidator;
 import pos.sale.repository.SaleRepository;
 import pos.sale.service.SaleService;
 import pos.sale.service.SaleServiceImpl;
@@ -31,6 +37,7 @@ import pos.supplier.validation.SupplierValidator;
 import pos.ui.controller.InventoryController;
 import pos.ui.controller.NewSaleController;
 import pos.ui.controller.ProductController;
+import pos.ui.controller.PurchaseOrderController;
 import pos.ui.controller.SaleHistoryController;
 import pos.ui.controller.SupplierController;
 import pos.ui.frame.MainFrame;
@@ -58,24 +65,30 @@ public class App {
     InventoryRepository inventoryRepository = new InventoryMongoRepository(database);
     SaleRepository saleRepository = new SaleMongoRepository(database);
     SupplierRepository supplierRepository = new SupplierMongoRepository(database);
+    PurchaseOrderRepository purchaseOrderRepository = new PurchaseOrderMongoRepository(database);
 
     ProductValidator productValidator = new ProductValidator();
     InventoryValidator inventoryValidator = new InventoryValidator();
     SaleValidator saleValidator = new SaleValidator();
     SupplierValidator supplierValidator = new SupplierValidator();
+    PurchaseOrderValidator purchaseOrderValidator = new PurchaseOrderValidator();
 
     ProductServiceImpl productService = new ProductServiceImpl(productRepository, productValidator);
     InventoryService inventoryService = new InventoryServiceImpl(inventoryRepository, inventoryValidator, productService);
     SaleService saleService = new SaleServiceImpl(saleRepository, saleValidator, inventoryService);
     SupplierService supplierService = new SupplierServiceImpl(supplierRepository, supplierValidator);
+    PurchaseOrderService purchaseOrderService = new PurchaseOrderServiceImpl(purchaseOrderRepository, purchaseOrderValidator, inventoryService, supplierService);
 
-    ProductController productController = new ProductController(productService);
+    productService.addListener(new InventoryEventListener(inventoryRepository));
+
+    ProductController productController = new ProductController(productService, supplierService);
     InventoryController inventoryController = new InventoryController(inventoryService, productService);
     NewSaleController newSaleController = new NewSaleController(saleService, productService);
     SaleHistoryController saleHistoryController = new SaleHistoryController(saleService);
     SupplierController supplierController = new SupplierController(supplierService);
+    PurchaseOrderController purchaseOrderController = new PurchaseOrderController(purchaseOrderService, supplierService, productService);
 
-    SwingUtilities.invokeLater(() -> new MainFrame(productController, inventoryController, newSaleController, saleHistoryController, supplierController).setVisible(true));
+    SwingUtilities.invokeLater(() -> new MainFrame(productController, inventoryController, newSaleController, saleHistoryController, supplierController, purchaseOrderController).setVisible(true));
   }
 
   private static MongoClient connectToDatabase(String mongoUri) {

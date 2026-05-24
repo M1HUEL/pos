@@ -26,6 +26,7 @@ public class ProductMapper {
       product.setPrice(doc.get("price", Decimal128.class).bigDecimalValue());
     }
 
+    product.setSupplierId(doc.getString("supplierId"));
     product.setActive(doc.getBoolean("active"));
 
     return product;
@@ -51,6 +52,7 @@ public class ProductMapper {
 
     }
 
+    doc.append("supplierId", product.getSupplierId());
     doc.append("active", product.getActive());
 
     return doc;

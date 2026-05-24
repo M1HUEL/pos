@@ -1,6 +1,7 @@
 package pos.ui.frame;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -11,10 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -28,6 +32,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import pos.product.model.Product;
+import pos.supplier.model.Supplier;
 import pos.ui.controller.ProductController;
 
 public class ProductFrame extends JFrame {
@@ -38,6 +43,7 @@ public class ProductFrame extends JFrame {
   private JTextField nameField;
   private JTextField descriptionField;
   private JTextField priceField;
+  private JComboBox<Object> supplierCombo;
   private JCheckBox activeCheckBox;
 
   private JTextField searchField;
@@ -67,10 +73,26 @@ public class ProductFrame extends JFrame {
     priceField = new JTextField("0.00", 20);
     activeCheckBox = new JCheckBox("Active", true);
 
+    supplierCombo = new JComboBox<>();
+    supplierCombo.setRenderer(new DefaultListCellRenderer() {
+      @Override
+      public Component getListCellRendererComponent(
+        JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        if (value instanceof Supplier) {
+          setText(((Supplier) value).getName());
+        } else {
+          setText("-- No Supplier --");
+        }
+        return this;
+      }
+    });
+    loadSupplierCombo();
+
     searchField = new JTextField(25);
 
     tableModel = new DefaultTableModel(
-      new String[]{"SKU", "Name", "Description", "Price", "Active"}, 0) {
+      new String[]{"SKU", "Name", "Description", "Price", "Supplier", "Active"}, 0) {
       @Override
       public boolean isCellEditable(int row, int col) {
         return false;
@@ -80,10 +102,11 @@ public class ProductFrame extends JFrame {
     table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     table.setRowHeight(24);
     table.getColumnModel().getColumn(0).setPreferredWidth(80);
-    table.getColumnModel().getColumn(1).setPreferredWidth(150);
-    table.getColumnModel().getColumn(2).setPreferredWidth(200);
-    table.getColumnModel().getColumn(3).setPreferredWidth(80);
-    table.getColumnModel().getColumn(4).setPreferredWidth(60);
+    table.getColumnModel().getColumn(1).setPreferredWidth(140);
+    table.getColumnModel().getColumn(2).setPreferredWidth(180);
+    table.getColumnModel().getColumn(3).setPreferredWidth(70);
+    table.getColumnModel().getColumn(4).setPreferredWidth(120);
+    table.getColumnModel().getColumn(5).setPreferredWidth(55);
 
     sorter = new TableRowSorter<>(tableModel);
     table.setRowSorter(sorter);
@@ -117,6 +140,14 @@ public class ProductFrame extends JFrame {
     saveButton.addActionListener(e -> handleSave());
     updateButton.addActionListener(e -> handleUpdate());
     deleteButton.addActionListener(e -> handleDelete());
+  }
+
+  private void loadSupplierCombo() {
+    supplierCombo.removeAllItems();
+    supplierCombo.addItem(null);
+    for (Supplier s : controller.getAllSuppliers()) {
+      supplierCombo.addItem(s);
+    }
   }
 
   private void layoutComponents() {
@@ -159,8 +190,12 @@ public class ProductFrame extends JFrame {
     fld.gridy = 3;
     panel.add(priceField, fld);
     lbl.gridy = 4;
-    panel.add(new JLabel("Status:"), lbl);
+    panel.add(new JLabel("Supplier:"), lbl);
     fld.gridy = 4;
+    panel.add(supplierCombo, fld);
+    lbl.gridy = 5;
+    panel.add(new JLabel("Status:"), lbl);
+    fld.gridy = 5;
     panel.add(activeCheckBox, fld);
 
     return panel;
@@ -176,7 +211,7 @@ public class ProductFrame extends JFrame {
     panel.add(searchPanel, BorderLayout.NORTH);
 
     JScrollPane scroll = new JScrollPane(table);
-    scroll.setPreferredSize(new Dimension(600, 180));
+    scroll.setPreferredSize(new Dimension(650, 180));
     panel.add(scroll, BorderLayout.CENTER);
 
     return panel;
@@ -214,16 +249,29 @@ public class ProductFrame extends JFrame {
     nameField.setText((String) tableModel.getValueAt(modelRow, 1));
     descriptionField.setText((String) tableModel.getValueAt(modelRow, 2));
     priceField.setText(tableModel.getValueAt(modelRow, 3).toString());
-    activeCheckBox.setSelected((Boolean) tableModel.getValueAt(modelRow, 4));
+    activeCheckBox.setSelected((Boolean) tableModel.getValueAt(modelRow, 5));
+
+    String supplierName = (String) tableModel.getValueAt(modelRow, 4);
+    supplierCombo.setSelectedIndex(0);
+    for (int i = 1; i < supplierCombo.getItemCount(); i++) {
+      Supplier s = (Supplier) supplierCombo.getItemAt(i);
+      if (s.getName().equals(supplierName)) {
+        supplierCombo.setSelectedIndex(i);
+        break;
+      }
+    }
     updateButton.setEnabled(true);
     deleteButton.setEnabled(true);
+  }
+
+  private String getSelectedSupplierId() {
+    Object selected = supplierCombo.getSelectedItem();
+    return (selected instanceof Supplier) ? ((Supplier) selected).getId() : null;
   }
 
   private void handleSave() {
     String sku = skuField.getText().trim();
     String name = nameField.getText().trim();
-    String description = descriptionField.getText().trim();
-    boolean active = activeCheckBox.isSelected();
     if (sku.isEmpty() || name.isEmpty()) {
       showError("SKU and Name are required.");
       return;
@@ -236,7 +284,9 @@ public class ProductFrame extends JFrame {
       return;
     }
     try {
-      Product created = controller.createProduct(sku, name, description, price, active);
+      Product created = controller.createProduct(
+        sku, name, descriptionField.getText().trim(),
+        price, getSelectedSupplierId(), activeCheckBox.isSelected());
       JOptionPane.showMessageDialog(this,
         "Product '" + created.getName() + "' saved successfully.",
         "Product Saved", JOptionPane.INFORMATION_MESSAGE);
@@ -253,8 +303,6 @@ public class ProductFrame extends JFrame {
     }
     String sku = skuField.getText().trim();
     String name = nameField.getText().trim();
-    String description = descriptionField.getText().trim();
-    boolean active = activeCheckBox.isSelected();
     if (sku.isEmpty() || name.isEmpty()) {
       showError("SKU and Name are required.");
       return;
@@ -267,7 +315,9 @@ public class ProductFrame extends JFrame {
       return;
     }
     try {
-      controller.updateProduct(editingProductId, sku, name, description, price, active);
+      controller.updateProduct(
+        editingProductId, sku, name, descriptionField.getText().trim(),
+        price, getSelectedSupplierId(), activeCheckBox.isSelected());
       JOptionPane.showMessageDialog(this,
         "Product updated successfully.",
         "Product Updated", JOptionPane.INFORMATION_MESSAGE);
@@ -303,6 +353,7 @@ public class ProductFrame extends JFrame {
     nameField.setText("");
     descriptionField.setText("");
     priceField.setText("0.00");
+    supplierCombo.setSelectedIndex(0);
     activeCheckBox.setSelected(true);
     table.clearSelection();
     updateButton.setEnabled(false);
@@ -314,8 +365,19 @@ public class ProductFrame extends JFrame {
     tableModel.setRowCount(0);
     rowProductIds.clear();
     for (Product p : controller.getAllProducts()) {
+      String supplierName = "";
+      if (p.getSupplierId() != null) {
+        for (int i = 1; i < supplierCombo.getItemCount(); i++) {
+          Supplier s = (Supplier) supplierCombo.getItemAt(i);
+          if (s.getId().equals(p.getSupplierId())) {
+            supplierName = s.getName();
+            break;
+          }
+        }
+      }
       tableModel.addRow(new Object[]{
-        p.getSku(), p.getName(), p.getDescription(), p.getPrice(), p.getActive()
+        p.getSku(), p.getName(), p.getDescription(),
+        p.getPrice(), supplierName, p.getActive()
       });
       rowProductIds.add(p.getId());
     }
@@ -327,9 +389,9 @@ public class ProductFrame extends JFrame {
 
   private void configureFrame() {
     setTitle("Products");
-    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     pack();
-    setMinimumSize(new Dimension(680, 580));
+    setMinimumSize(new Dimension(720, 600));
     setLocationRelativeTo(null);
   }
 }

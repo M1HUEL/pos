@@ -5,15 +5,19 @@ import java.util.ArrayList;
 import java.util.List;
 import pos.product.model.Product;
 import pos.product.service.ProductService;
+import pos.supplier.model.Supplier;
+import pos.supplier.service.SupplierService;
 import pos.ui.listener.ProductChangeListener;
 
 public class ProductController {
 
   private final ProductService productService;
+  private final SupplierService supplierService;
   private final List<ProductChangeListener> changeListeners = new ArrayList<>();
 
-  public ProductController(ProductService productService) {
+  public ProductController(ProductService productService, SupplierService supplierService) {
     this.productService = productService;
+    this.supplierService = supplierService;
   }
 
   public void addChangeListener(ProductChangeListener listener) {
@@ -28,14 +32,17 @@ public class ProductController {
     return productService.getAllProducts();
   }
 
-  public Product createProduct(String sku, String name, String description,
-    BigDecimal price, boolean active) {
+  public List<Supplier> getAllSuppliers() {
+    return supplierService.getAllSuppliers();
+  }
 
+  public Product createProduct(String sku, String name, String description, BigDecimal price, String supplierId, boolean active) {
     Product product = new Product();
     product.setSku(sku);
     product.setName(name);
     product.setDescription(description);
     product.setPrice(price);
+    product.setSupplierId(supplierId);
     product.setActive(active);
 
     Product created = productService.createProduct(product);
@@ -45,15 +52,14 @@ public class ProductController {
     return created;
   }
 
-  public Product updateProduct(String id, String sku, String name, String description,
-    BigDecimal price, boolean active) {
-
+  public Product updateProduct(String id, String sku, String name, String description, BigDecimal price, String supplierId, boolean active) {
     Product product = new Product();
     product.setId(id);
     product.setSku(sku);
     product.setName(name);
     product.setDescription(description);
     product.setPrice(price);
+    product.setSupplierId(supplierId);
     product.setActive(active);
 
     Product updated = productService.updateProduct(product);
