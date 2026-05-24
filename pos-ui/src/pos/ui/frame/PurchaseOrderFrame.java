@@ -29,6 +29,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -41,11 +42,12 @@ import pos.purchase.model.PurchaseOrderItem;
 import pos.purchase.model.PurchaseOrderStatus;
 import pos.supplier.model.Supplier;
 import pos.ui.controller.PurchaseOrderController;
+import pos.ui.listener.ProductChangeListener;
+import pos.ui.listener.SupplierChangeListener;
 
-public class PurchaseOrderFrame extends JFrame {
+public class PurchaseOrderFrame extends JFrame implements ProductChangeListener, SupplierChangeListener {
 
-  private static final DateTimeFormatter DATE_FORMAT
-    = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
   private final PurchaseOrderController controller;
 
@@ -489,5 +491,25 @@ public class PurchaseOrderFrame extends JFrame {
     pack();
     setMinimumSize(new Dimension(780, 680));
     setLocationRelativeTo(null);
+  }
+
+  @Override
+  public void onProductsChanged() {
+    SwingUtilities.invokeLater(() -> {
+      productCombo.removeAllItems();
+      for (Product p : controller.getAllProducts()) {
+        productCombo.addItem(p);
+      }
+    });
+  }
+
+  @Override
+  public void onSuppliersChanged() {
+    SwingUtilities.invokeLater(() -> {
+      supplierCombo.removeAllItems();
+      for (Supplier s : controller.getAllSuppliers()) {
+        supplierCombo.addItem(s);
+      }
+    });
   }
 }

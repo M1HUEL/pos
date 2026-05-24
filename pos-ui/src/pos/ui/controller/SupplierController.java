@@ -1,15 +1,26 @@
 package pos.ui.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import pos.supplier.model.Supplier;
 import pos.supplier.service.SupplierService;
+import pos.ui.listener.SupplierChangeListener;
 
 public class SupplierController {
 
   private final SupplierService supplierService;
+  private final List<SupplierChangeListener> changeListeners = new ArrayList<>();
 
   public SupplierController(SupplierService supplierService) {
     this.supplierService = supplierService;
+  }
+
+  public void addChangeListener(SupplierChangeListener listener) {
+    changeListeners.add(listener);
+  }
+
+  private void notifySuppliersChanged() {
+    changeListeners.forEach(SupplierChangeListener::onSuppliersChanged);
   }
 
   public List<Supplier> getAllSuppliers() {
@@ -25,7 +36,11 @@ public class SupplierController {
     supplier.setAddress(address);
     supplier.setActive(active);
 
-    return supplierService.createSupplier(supplier);
+    Supplier created = supplierService.createSupplier(supplier);
+
+    notifySuppliersChanged();
+
+    return created;
   }
 
   public Supplier updateSupplier(String id, String name, String contactName, String phone, String email, String address, boolean active) {
@@ -38,10 +53,16 @@ public class SupplierController {
     supplier.setAddress(address);
     supplier.setActive(active);
 
-    return supplierService.updateSupplier(supplier);
+    Supplier updated = supplierService.updateSupplier(supplier);
+
+    notifySuppliersChanged();
+
+    return updated;
   }
 
   public void deleteSupplier(String id) {
     supplierService.deleteSupplier(id);
+
+    notifySuppliersChanged();
   }
 }

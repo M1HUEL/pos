@@ -48,6 +48,10 @@ public class MainFrame extends JFrame {
 
     productController.addChangeListener(inventoryFrame);
     productController.addChangeListener(newSaleFrame);
+    productController.addChangeListener(purchaseOrderFrame);
+
+    supplierController.addChangeListener(purchaseOrderFrame);
+    supplierController.addChangeListener(productFrame);
 
     initComponents();
     configureFrame();

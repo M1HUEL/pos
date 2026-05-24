@@ -26,6 +26,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -34,8 +35,9 @@ import javax.swing.table.TableRowSorter;
 import pos.product.model.Product;
 import pos.supplier.model.Supplier;
 import pos.ui.controller.ProductController;
+import pos.ui.listener.SupplierChangeListener;
 
-public class ProductFrame extends JFrame {
+public class ProductFrame extends JFrame implements SupplierChangeListener {
 
   private final ProductController controller;
 
@@ -393,5 +395,10 @@ public class ProductFrame extends JFrame {
     pack();
     setMinimumSize(new Dimension(720, 600));
     setLocationRelativeTo(null);
+  }
+
+  @Override
+  public void onSuppliersChanged() {
+    SwingUtilities.invokeLater(this::loadSupplierCombo);
   }
 }
