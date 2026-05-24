@@ -35,12 +35,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
   @Override
   public Optional<PurchaseOrder> getOrderById(String id) {
     purchaseOrderValidator.validateId(id);
+
     return purchaseOrderRepository.findById(id);
   }
 
   @Override
   public PurchaseOrder createOrder(PurchaseOrder order) {
     purchaseOrderValidator.validate(order);
+
     supplierService.getSupplierById(order.getSupplierId()).orElseThrow(() -> new PurchaseOrderException("Supplier not found with ID: " + order.getSupplierId()));
 
     if (order.getDate() == null) {
@@ -55,6 +57,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
   @Override
   public void receiveOrder(String id) {
     purchaseOrderValidator.validateId(id);
+
     PurchaseOrder order = purchaseOrderRepository.findById(id).orElseThrow(() -> new PurchaseOrderException("Purchase order not found with ID: " + id));
 
     if (PurchaseOrderStatus.PENDING != order.getStatus()) {

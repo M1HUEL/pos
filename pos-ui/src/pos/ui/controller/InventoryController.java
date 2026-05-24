@@ -12,8 +12,7 @@ public class InventoryController {
   private final InventoryService inventoryService;
   private final ProductService productService;
 
-  public InventoryController(InventoryService inventoryService,
-    ProductService productService) {
+  public InventoryController(InventoryService inventoryService, ProductService productService) {
     this.inventoryService = inventoryService;
     this.productService = productService;
   }
@@ -39,6 +38,7 @@ public class InventoryController {
     stockItem.setProductId(productId);
     stockItem.setStock(stock);
     stockItem.setMinStock(minStock);
+
     return inventoryService.initializeStock(stockItem);
   }
 
