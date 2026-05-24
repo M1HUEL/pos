@@ -8,6 +8,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import org.bson.Document;
+import pos.auth.model.Session;
 import pos.infrastructure.mongodb.MongoIndexInitializer;
 import pos.infrastructure.mongodb.repository.InventoryMongoRepository;
 import pos.infrastructure.mongodb.repository.ProductMongoRepository;
@@ -15,6 +16,7 @@ import pos.infrastructure.mongodb.repository.PurchaseOrderMongoRepository;
 import pos.infrastructure.mongodb.repository.SaleConfigMongoRepository;
 import pos.infrastructure.mongodb.repository.SaleMongoRepository;
 import pos.infrastructure.mongodb.repository.SupplierMongoRepository;
+import pos.infrastructure.mongodb.repository.UserMongoRepository;
 import pos.inventory.listener.InventoryEventListener;
 import pos.inventory.repository.InventoryRepository;
 import pos.inventory.service.InventoryService;
@@ -46,13 +48,34 @@ import pos.ui.controller.PurchaseOrderController;
 import pos.ui.controller.SaleConfigController;
 import pos.ui.controller.SaleHistoryController;
 import pos.ui.controller.SupplierController;
+import pos.ui.controller.UserController;
+import pos.ui.frame.LoginFrame;
 import pos.ui.frame.MainFrame;
+import pos.user.model.Role;
+import pos.user.model.User;
+import pos.user.repository.UserRepository;
+import pos.user.service.UserService;
+import pos.user.service.UserServiceImpl;
+import pos.user.validation.UserValidator;
 
 public class App {
+
+  private ProductController productController;
+  private InventoryController inventoryController;
+  private NewSaleController newSaleController;
+  private SaleHistoryController saleHistoryController;
+  private SupplierController supplierController;
+  private PurchaseOrderController purchaseOrderController;
+  private SaleConfigController saleConfigController;
+  private UserController userController;
 
   public static void main(String[] args) {
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "Unexpected error: " + throwable.getMessage(), "Error", JOptionPane.ERROR_MESSAGE)));
 
+    new App().start();
+  }
+
+  private void start() {
     applyLookAndFeel();
 
     AppConfig config = new AppConfig();
@@ -69,12 +92,21 @@ public class App {
 
     registerShutdownHook(mongoClient);
 
+    initializeDependencies(database);
+
+    createDefaultAdminIfNeeded();
+
+    SwingUtilities.invokeLater(this::showLogin);
+  }
+
+  private void initializeDependencies(MongoDatabase database) {
     ProductRepository productRepository = new ProductMongoRepository(database);
     InventoryRepository inventoryRepository = new InventoryMongoRepository(database);
     SaleRepository saleRepository = new SaleMongoRepository(database);
     SupplierRepository supplierRepository = new SupplierMongoRepository(database);
     PurchaseOrderRepository purchaseOrderRepository = new PurchaseOrderMongoRepository(database);
     SaleConfigRepository saleConfigRepository = new SaleConfigMongoRepository(database);
+    UserRepository userRepository = new UserMongoRepository(database);
 
     ProductValidator productValidator = new ProductValidator();
     InventoryValidator inventoryValidator = new InventoryValidator();
@@ -82,6 +114,7 @@ public class App {
     SupplierValidator supplierValidator = new SupplierValidator();
     PurchaseOrderValidator purchaseOrderValidator = new PurchaseOrderValidator();
     SaleConfigValidator saleConfigValidator = new SaleConfigValidator();
+    UserValidator userValidator = new UserValidator();
 
     ProductServiceImpl productService = new ProductServiceImpl(productRepository, productValidator);
     InventoryService inventoryService = new InventoryServiceImpl(inventoryRepository, inventoryValidator, productService);
@@ -89,29 +122,66 @@ public class App {
     SupplierService supplierService = new SupplierServiceImpl(supplierRepository, supplierValidator);
     PurchaseOrderService purchaseOrderService = new PurchaseOrderServiceImpl(purchaseOrderRepository, purchaseOrderValidator, inventoryService, supplierService);
     SaleConfigService saleConfigService = new SaleConfigServiceImpl(saleConfigRepository, saleConfigValidator);
+    UserService userService = new UserServiceImpl(userRepository, userValidator);
 
     productService.addListener(new InventoryEventListener(inventoryRepository));
 
-    ProductController productController = new ProductController(productService, supplierService);
-    InventoryController inventoryController = new InventoryController(inventoryService, productService);
-    NewSaleController newSaleController = new NewSaleController(saleService, productService, saleConfigService);
-    SaleHistoryController saleHistoryController = new SaleHistoryController(saleService);
-    SupplierController supplierController = new SupplierController(supplierService);
-    PurchaseOrderController purchaseOrderController = new PurchaseOrderController(purchaseOrderService, supplierService, productService);
-    SaleConfigController saleConfigController = new SaleConfigController(saleConfigService);
+    productController = new ProductController(productService, supplierService);
+    inventoryController = new InventoryController(inventoryService, productService);
+    newSaleController = new NewSaleController(saleService, productService, saleConfigService);
+    saleHistoryController = new SaleHistoryController(saleService);
+    supplierController = new SupplierController(supplierService);
+    purchaseOrderController = new PurchaseOrderController(purchaseOrderService, supplierService, productService);
+    saleConfigController = new SaleConfigController(saleConfigService);
+    userController = new UserController(userService);
+  }
 
-    SwingUtilities.invokeLater(() -> new MainFrame(productController, inventoryController, newSaleController, saleHistoryController, supplierController, purchaseOrderController, saleConfigController).setVisible(true));
+  private void createDefaultAdminIfNeeded() {
+    if (userController.getAllUsers().isEmpty()) {
+      User admin = new User();
+      admin.setUsername("admin");
+      admin.setFullName("Administrator");
+      admin.setRole(Role.ADMIN);
+      admin.setActive(true);
+
+      userController.createUser("admin", "Administrator", Role.ADMIN, true, "admin123");
+
+      System.out.println("Default admin created — username: admin, password: admin123");
+    }
+  }
+
+  private void showLogin() {
+    new LoginFrame(userController, this::onLoginSuccess).setVisible(true);
+  }
+
+  private void onLoginSuccess(User user) {
+    Session.getInstance().login(user);
+
+    showMain();
+  }
+
+  private void showMain() {
+    MainFrame mainFrame = new MainFrame(productController, inventoryController, newSaleController, saleHistoryController, supplierController, purchaseOrderController, saleConfigController, userController, this::onLogout);
+
+    mainFrame.setVisible(true);
+  }
+
+  private void onLogout() {
+    Session.getInstance().logout();
+
+    SwingUtilities.invokeLater(this::showLogin);
   }
 
   private static MongoClient connectToDatabase(String mongoUri) {
     try {
       MongoClient client = MongoClients.create(mongoUri);
+
       client.getDatabase("admin").runCommand(new Document("ping", 1));
+
       return client;
     } catch (Exception e) {
-      JOptionPane.showMessageDialog(null,
-        "Could not connect to the database.\n" + e.getMessage(),
-        "Connection Error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, "Could not connect to the database.\n" + e.getMessage(), "Connection Error", JOptionPane.ERROR_MESSAGE);
+
       return null;
     }
   }
