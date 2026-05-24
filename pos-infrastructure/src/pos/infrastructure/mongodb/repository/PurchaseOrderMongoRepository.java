@@ -10,6 +10,7 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import pos.infrastructure.mongodb.mapper.PurchaseOrderMapper;
 import pos.purchase.model.PurchaseOrder;
+import pos.purchase.model.PurchaseOrderStatus;
 import pos.purchase.repository.PurchaseOrderRepository;
 
 public class PurchaseOrderMongoRepository implements PurchaseOrderRepository {
@@ -25,6 +26,36 @@ public class PurchaseOrderMongoRepository implements PurchaseOrderRepository {
     List<PurchaseOrder> orders = new ArrayList<>();
 
     for (Document doc : collection.find()) {
+      orders.add(PurchaseOrderMapper.toEntity(doc));
+    }
+
+    return orders;
+  }
+
+  @Override
+  public List<PurchaseOrder> findBySupplierId(String supplierId) {
+    List<PurchaseOrder> orders = new ArrayList<>();
+
+    if (supplierId == null) {
+      return orders;
+    }
+
+    for (Document doc : collection.find(Filters.eq("supplierId", supplierId))) {
+      orders.add(PurchaseOrderMapper.toEntity(doc));
+    }
+
+    return orders;
+  }
+
+  @Override
+  public List<PurchaseOrder> findByStatus(PurchaseOrderStatus status) {
+    List<PurchaseOrder> orders = new ArrayList<>();
+
+    if (status == null) {
+      return orders;
+    }
+
+    for (Document doc : collection.find(Filters.eq("status", status.name()))) {
       orders.add(PurchaseOrderMapper.toEntity(doc));
     }
 
