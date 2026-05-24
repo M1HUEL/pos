@@ -36,6 +36,7 @@ public class PurchaseOrderValidator {
     if (order.getTotalCost() == null || order.getTotalCost().compareTo(BigDecimal.ZERO) < 0) {
       throw new PurchaseOrderException("Total cost cannot be null or negative");
     }
+    validateTotalCost(order);
   }
 
   private void validateItem(PurchaseOrderItem item) {
@@ -57,6 +58,13 @@ public class PurchaseOrderValidator {
 
     if (item.getTotalCost().compareTo(expectedTotal) != 0) {
       throw new PurchaseOrderException("Item totalCost does not match unitCost * quantity for product ID: " + item.getProductId());
+    }
+  }
+
+  private void validateTotalCost(PurchaseOrder order) {
+    BigDecimal expectedTotal = order.getItems().stream().map(PurchaseOrderItem::getTotalCost).reduce(BigDecimal.ZERO, BigDecimal::add);
+    if (order.getTotalCost().compareTo(expectedTotal) != 0) {
+      throw new PurchaseOrderException("Order totalCost does not match the sum of item costs");
     }
   }
 }
