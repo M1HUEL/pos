@@ -77,7 +77,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         inventoryService.reduceStock(processed.getProductId(), processed.getQuantity());
       }
 
-      throw new PurchaseOrderException("Failed to receive order. " + e.getMessage(), e);
+      throw new PurchaseOrderException("Failed to receive order. Ensure all products have an initialized " + "stock record before receiving. " + e.getMessage(), e);
     }
 
     order.setStatus(PurchaseOrderStatus.RECEIVED);
