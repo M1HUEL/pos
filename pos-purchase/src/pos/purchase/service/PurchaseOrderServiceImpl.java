@@ -33,6 +33,22 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
   }
 
   @Override
+  public List<PurchaseOrder> getOrdersBySupplierId(String supplierId) {
+    purchaseOrderValidator.validateId(supplierId);
+
+    return purchaseOrderRepository.findBySupplierId(supplierId);
+  }
+
+  @Override
+  public List<PurchaseOrder> getOrdersByStatus(PurchaseOrderStatus status) {
+    if (status == null) {
+      throw new PurchaseOrderException("Status cannot be null");
+    }
+
+    return purchaseOrderRepository.findByStatus(status);
+  }
+
+  @Override
   public Optional<PurchaseOrder> getOrderById(String id) {
     purchaseOrderValidator.validateId(id);
 

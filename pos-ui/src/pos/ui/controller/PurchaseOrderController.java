@@ -9,6 +9,7 @@ import pos.product.model.Product;
 import pos.product.service.ProductService;
 import pos.purchase.model.PurchaseOrder;
 import pos.purchase.model.PurchaseOrderItem;
+import pos.purchase.model.PurchaseOrderStatus;
 import pos.purchase.service.PurchaseOrderService;
 import pos.supplier.model.Supplier;
 import pos.supplier.service.SupplierService;
@@ -36,6 +37,14 @@ public class PurchaseOrderController {
 
   public List<PurchaseOrder> getAllOrders() {
     return purchaseOrderService.getAllOrders();
+  }
+
+  public List<PurchaseOrder> getOrdersBySupplierId(String supplierId) {
+    return purchaseOrderService.getOrdersBySupplierId(supplierId);
+  }
+
+  public List<PurchaseOrder> getOrdersByStatus(PurchaseOrderStatus status) {
+    return purchaseOrderService.getOrdersByStatus(status);
   }
 
   public PurchaseOrderItem buildItem(Product product, int quantity, BigDecimal unitCost) {
