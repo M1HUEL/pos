@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import pos.product.model.Product;
 import pos.product.service.ProductService;
+import pos.sale.config.service.SaleConfigService;
 import pos.sale.model.PaymentMethod;
 import pos.sale.model.Sale;
 import pos.sale.model.SaleItem;
@@ -18,24 +19,36 @@ public class NewSaleController {
 
   private final SaleService saleService;
   private final ProductService productService;
+  private final SaleConfigService saleConfigService;
   private final List<SaleItem> currentItems = new ArrayList<>();
 
-  public NewSaleController(SaleService saleService, ProductService productService) {
+  public NewSaleController(SaleService saleService, ProductService productService, SaleConfigService saleConfigService) {
     this.saleService = saleService;
     this.productService = productService;
+    this.saleConfigService = saleConfigService;
   }
 
   public List<Product> getAllProducts() {
     return productService.getAllProducts().stream().filter(p -> Boolean.TRUE.equals(p.getActive())).collect(Collectors.toList());
   }
 
+  public BigDecimal getTaxRatePercent() {
+    return saleConfigService.getConfig().getTaxRate().multiply(BigDecimal.valueOf(100)).stripTrailingZeros();
+  }
+
+  public BigDecimal getDefaultDiscount() {
+    return saleConfigService.getConfig().getDefaultDiscount().setScale(2, RoundingMode.HALF_UP);
+  }
+
   public SaleItem buildItem(Product product, int quantity, BigDecimal discountAmount) {
     if (quantity <= 0) {
       throw new IllegalArgumentException("Quantity must be greater than zero");
     }
+
     if (discountAmount == null) {
       discountAmount = BigDecimal.ZERO;
     }
+
     if (discountAmount.compareTo(BigDecimal.ZERO) < 0) {
       throw new IllegalArgumentException("Item discount cannot be negative");
     }
@@ -87,19 +100,19 @@ public class NewSaleController {
     return currentItems.stream().map(SaleItem::getSubTotal).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
   }
 
-  public BigDecimal calculateTotal(BigDecimal saleDiscount, BigDecimal taxAmount) {
+  public BigDecimal calculateTaxAmount() {
+    return calculateItemsTotal().multiply(saleConfigService.getConfig().getTaxRate()).setScale(2, RoundingMode.HALF_UP);
+  }
+
+  public BigDecimal calculateTotal(BigDecimal saleDiscount) {
     if (saleDiscount == null) {
       saleDiscount = BigDecimal.ZERO;
     }
 
-    if (taxAmount == null) {
-      taxAmount = BigDecimal.ZERO;
-    }
-
-    return calculateItemsTotal().subtract(saleDiscount).add(taxAmount).setScale(2, RoundingMode.HALF_UP);
+    return calculateItemsTotal().subtract(saleDiscount).add(calculateTaxAmount()).setScale(2, RoundingMode.HALF_UP);
   }
 
-  public Sale createSale(PaymentMethod paymentMethod, BigDecimal saleDiscount, BigDecimal taxAmount) {
+  public Sale createSale(PaymentMethod paymentMethod, BigDecimal saleDiscount) {
     if (currentItems.isEmpty()) {
       throw new IllegalStateException("Cannot create a sale with no items");
     }
@@ -108,17 +121,17 @@ public class NewSaleController {
       saleDiscount = BigDecimal.ZERO;
     }
 
-    if (taxAmount == null) {
-      taxAmount = BigDecimal.ZERO;
-    }
+    BigDecimal taxAmount = calculateTaxAmount();
+    BigDecimal totalAmount = calculateTotal(saleDiscount);
 
     Sale sale = new Sale();
     sale.setPaymentMethod(paymentMethod);
     sale.setItems(new ArrayList<>(currentItems));
     sale.setDiscountAmount(saleDiscount);
     sale.setTaxAmount(taxAmount);
-    sale.setTotalAmount(calculateTotal(saleDiscount, taxAmount));
+    sale.setTotalAmount(totalAmount);
     sale.setDateTime(LocalDateTime.now());
+
     Sale created = saleService.createSale(sale);
 
     currentItems.clear();

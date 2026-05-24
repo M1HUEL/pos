@@ -16,6 +16,7 @@ import pos.ui.controller.InventoryController;
 import pos.ui.controller.ProductController;
 import pos.ui.controller.NewSaleController;
 import pos.ui.controller.PurchaseOrderController;
+import pos.ui.controller.SaleConfigController;
 import pos.ui.controller.SaleHistoryController;
 import pos.ui.controller.SupplierController;
 
@@ -29,6 +30,7 @@ public class MainFrame extends JFrame {
   private final SaleHistoryFrame saleHistoryFrame;
   private final SupplierFrame supplierFrame;
   private final PurchaseOrderFrame purchaseOrderFrame;
+  private final SettingsFrame settingsFrame;
 
   public MainFrame(
     ProductController productController,
@@ -36,7 +38,8 @@ public class MainFrame extends JFrame {
     NewSaleController newSaleController,
     SaleHistoryController saleHistoryController,
     SupplierController supplierController,
-    PurchaseOrderController purchaseOrderController) {
+    PurchaseOrderController purchaseOrderController,
+    SaleConfigController saleConfigController) {
     this.inventoryController = inventoryController;
 
     productFrame = new ProductFrame(productController);
@@ -45,6 +48,7 @@ public class MainFrame extends JFrame {
     saleHistoryFrame = new SaleHistoryFrame(saleHistoryController);
     supplierFrame = new SupplierFrame(supplierController);
     purchaseOrderFrame = new PurchaseOrderFrame(purchaseOrderController);
+    settingsFrame = new SettingsFrame(saleConfigController);
 
     productController.addChangeListener(inventoryFrame);
     productController.addChangeListener(newSaleFrame);
@@ -64,7 +68,7 @@ public class MainFrame extends JFrame {
     JLabel title = new JLabel("POS System", SwingConstants.CENTER);
     add(title, BorderLayout.NORTH);
 
-    JPanel buttonPanel = new JPanel(new GridLayout(7, 1, 0, 10));
+    JPanel buttonPanel = new JPanel(new GridLayout(8, 1, 0, 10));
 
     JButton productsButton = new JButton("Products");
     JButton inventoryButton = new JButton("Inventory");
@@ -72,6 +76,7 @@ public class MainFrame extends JFrame {
     JButton saleHistoryButton = new JButton("Sale History");
     JButton suppliersButton = new JButton("Suppliers");
     JButton purchaseOrderButton = new JButton("Purchase Orders");
+    JButton settingsButton = new JButton("Settings");
     JButton lowStockButton = new JButton("Low Stock Alert");
 
     productsButton.addActionListener(e -> showFrame(productFrame));
@@ -80,6 +85,7 @@ public class MainFrame extends JFrame {
     saleHistoryButton.addActionListener(e -> showFrame(saleHistoryFrame));
     suppliersButton.addActionListener(e -> showFrame(supplierFrame));
     purchaseOrderButton.addActionListener(e -> showFrame(purchaseOrderFrame));
+    settingsButton.addActionListener(e -> showFrame(settingsFrame));
     lowStockButton.addActionListener(e -> handleLowStockAlert());
 
     buttonPanel.add(productsButton);
@@ -88,6 +94,7 @@ public class MainFrame extends JFrame {
     buttonPanel.add(saleHistoryButton);
     buttonPanel.add(suppliersButton);
     buttonPanel.add(purchaseOrderButton);
+    buttonPanel.add(settingsButton);
     buttonPanel.add(lowStockButton);
 
     add(buttonPanel, BorderLayout.CENTER);
@@ -123,7 +130,7 @@ public class MainFrame extends JFrame {
   private void configureFrame() {
     setTitle("POS System");
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setMinimumSize(new Dimension(280, 480));
+    setMinimumSize(new Dimension(280, 540));
     pack();
     setLocationRelativeTo(null);
   }

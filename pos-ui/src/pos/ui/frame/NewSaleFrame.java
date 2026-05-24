@@ -55,7 +55,8 @@ public class NewSaleFrame extends JFrame implements ProductChangeListener {
 
   private JLabel itemsTotalLabel;
   private JTextField saleDiscountField;
-  private JTextField taxAmountField;
+  private JLabel taxRateLabel;
+  private JLabel taxAmountLabel;
   private JLabel totalLabel;
 
   public NewSaleFrame(NewSaleController controller) {
@@ -112,18 +113,17 @@ public class NewSaleFrame extends JFrame implements ProductChangeListener {
     }
 
     itemsTotalLabel = new JLabel("$0.00");
-    saleDiscountField = new JTextField("0.00", 8);
-    taxAmountField = new JTextField("0.00", 8);
+    taxRateLabel = new JLabel("Tax (0%):");
+    taxAmountLabel = new JLabel("$0.00");
     totalLabel = new JLabel("$0.00");
 
-    FocusAdapter totalsListener = new FocusAdapter() {
+    saleDiscountField = new JTextField(controller.getDefaultDiscount().toPlainString(), 8);
+    saleDiscountField.addFocusListener(new FocusAdapter() {
       @Override
       public void focusLost(FocusEvent e) {
         updateTotals();
       }
-    };
-    saleDiscountField.addFocusListener(totalsListener);
-    taxAmountField.addFocusListener(totalsListener);
+    });
   }
 
   private void loadProducts() {
@@ -196,35 +196,43 @@ public class NewSaleFrame extends JFrame implements ProductChangeListener {
   private JPanel buildTotalsPanel() {
     JPanel panel = new JPanel(new GridBagLayout());
     panel.setBorder(new TitledBorder("Totals"));
+
     GridBagConstraints lbl = new GridBagConstraints();
     lbl.anchor = GridBagConstraints.EAST;
     lbl.insets = new Insets(4, 10, 4, 6);
+
     GridBagConstraints val = new GridBagConstraints();
     val.anchor = GridBagConstraints.WEST;
     val.insets = new Insets(4, 0, 4, 10);
     val.gridwidth = GridBagConstraints.REMAINDER;
+
     lbl.gridy = 0;
     panel.add(new JLabel("Items Total:"), lbl);
     val.gridy = 0;
     panel.add(itemsTotalLabel, val);
+
     lbl.gridy = 1;
     panel.add(new JLabel("Sale Discount ($):"), lbl);
     val.gridy = 1;
     panel.add(saleDiscountField, val);
+
     lbl.gridy = 2;
-    panel.add(new JLabel("Tax Amount ($):"), lbl);
+    panel.add(taxRateLabel, lbl);
     val.gridy = 2;
-    panel.add(taxAmountField, val);
+    panel.add(taxAmountLabel, val);
+
     GridBagConstraints sep = new GridBagConstraints();
     sep.gridy = 3;
     sep.gridwidth = GridBagConstraints.REMAINDER;
     sep.fill = GridBagConstraints.HORIZONTAL;
     sep.insets = new Insets(6, 10, 6, 10);
     panel.add(new JSeparator(), sep);
+
     lbl.gridy = 4;
     panel.add(new JLabel("TOTAL:"), lbl);
     val.gridy = 4;
     panel.add(totalLabel, val);
+
     return panel;
   }
 
@@ -281,22 +289,21 @@ public class NewSaleFrame extends JFrame implements ProductChangeListener {
     }
     PaymentMethod paymentMethod = (PaymentMethod) paymentMethodCombo.getSelectedItem();
     BigDecimal saleDiscount;
-    BigDecimal taxAmount;
     try {
       saleDiscount = new BigDecimal(saleDiscountField.getText().trim());
-      taxAmount = new BigDecimal(taxAmountField.getText().trim());
     } catch (NumberFormatException e) {
-      showError("Invalid discount or tax amount.");
+      showError("Invalid discount amount.");
       return;
     }
     int confirm = JOptionPane.showConfirmDialog(this,
-      "Complete sale for " + totalLabel.getText() + " via " + paymentMethod.getDisplayName() + "?",
+      "Complete sale for " + totalLabel.getText()
+      + " via " + paymentMethod.getDisplayName() + "?",
       "Confirm Sale", JOptionPane.YES_NO_OPTION);
     if (confirm != JOptionPane.YES_OPTION) {
       return;
     }
     try {
-      Sale sale = controller.createSale(paymentMethod, saleDiscount, taxAmount);
+      Sale sale = controller.createSale(paymentMethod, saleDiscount);
       JOptionPane.showMessageDialog(this,
         "Sale " + sale.getSaleNumber() + " completed successfully!",
         "Sale Completed", JOptionPane.INFORMATION_MESSAGE);
@@ -309,8 +316,7 @@ public class NewSaleFrame extends JFrame implements ProductChangeListener {
   private void handleClear() {
     controller.clearItems();
     tableModel.setRowCount(0);
-    saleDiscountField.setText("0.00");
-    taxAmountField.setText("0.00");
+    saleDiscountField.setText(controller.getDefaultDiscount().toPlainString());
     saleNumberField.setText(controller.generateSaleNumber());
     updateTotals();
   }
@@ -331,14 +337,14 @@ public class NewSaleFrame extends JFrame implements ProductChangeListener {
 
   private void updateTotals() {
     itemsTotalLabel.setText("$" + controller.calculateItemsTotal());
+    taxRateLabel.setText("Tax (" + controller.getTaxRatePercent().toPlainString() + "%):");
+    taxAmountLabel.setText("$" + controller.calculateTaxAmount());
     BigDecimal discount = BigDecimal.ZERO;
-    BigDecimal tax = BigDecimal.ZERO;
     try {
       discount = new BigDecimal(saleDiscountField.getText().trim());
-      tax = new BigDecimal(taxAmountField.getText().trim());
     } catch (NumberFormatException ignored) {
     }
-    totalLabel.setText("$" + controller.calculateTotal(discount, tax));
+    totalLabel.setText("$" + controller.calculateTotal(discount));
   }
 
   private void showError(String message) {
@@ -346,7 +352,7 @@ public class NewSaleFrame extends JFrame implements ProductChangeListener {
   }
 
   private void configureFrame() {
-    setTitle("Register Sale");
+    setTitle("New Sale");
     setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     pack();
     setMinimumSize(new Dimension(780, 620));
