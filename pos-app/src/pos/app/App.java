@@ -45,6 +45,8 @@ import pos.ui.frame.MainFrame;
 public class App {
 
   public static void main(String[] args) {
+    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, "Unexpected error: " + throwable.getMessage(), "Error", JOptionPane.ERROR_MESSAGE)));
+
     applyLookAndFeel();
 
     AppConfig config = new AppConfig();
